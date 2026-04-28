@@ -1,0 +1,107 @@
+global:
+  imagePullSecrets:
+    - global-pull-secret
+
+commonLabels:
+  appthrust.io/test: helm
+commonAnnotations:
+  appthrust.io/rendered-by: helm-template
+
+image:
+  tag: test
+  pullSecrets:
+    - operator-pull-secret
+
+operator:
+  leaderElection:
+    enabled: false
+  extraArgs: []
+
+aws:
+  endpointURL: http://aws-endpoint.example.local
+  allowUnsafeEndpointURLs: true
+
+logging:
+  level: debug
+  exporter: console
+  addSource: true
+  resource:
+    deploymentEnvironmentName: test
+    attributes:
+      appthrust.io/chart-test: "true"
+  otlp:
+    endpoint: http://otel-collector.observability.svc:4318
+    logsEndpoint: http://otel-collector.observability.svc:4318/v1/logs
+    headers:
+      test-header: test-value
+    logsHeaders:
+      test-logs-header: test-value
+
+clusterInventory:
+  accessProviders:
+    - name: secondary
+      execConfig:
+        apiVersion: client.authentication.k8s.io/v1
+        command: /extra/secondary/cp-creds
+        provideClusterInfo: true
+        interactiveMode: Never
+  plugins:
+    # Do not pin cp-creds by SHA yet; upstream digests change frequently while it stabilizes.
+    - name: open-cluster-management
+      image: quay.io/open-cluster-management/cp-creds:latest
+      mountPath: /plugins
+      pullPolicy: IfNotPresent
+    - name: secondary
+      image: quay.io/open-cluster-management/cp-creds:latest
+      mountPath: /extra/secondary
+      pullPolicy: IfNotPresent
+
+ocm:
+  managedServiceAccount:
+    create: true
+    namespaces:
+      - wlc-test
+    labels:
+      authentication.open-cluster-management.io/sync-to-clusterprofile: "false"
+      appthrust.io/msa-test: "true"
+    annotations:
+      appthrust.io/msa-rendered-by: helm-template-test
+    remotePermissions:
+      name: awio-test-remote-permissions
+
+metrics:
+  service:
+    enabled: true
+
+serviceMonitor:
+  enabled: true
+  labels:
+    release: kube-prometheus-stack
+
+serviceAccount:
+  annotations:
+    eks.amazonaws.com/role-arn: arn:aws:iam::123456789012:role/aws-workload-identity-operator
+
+rbac:
+  extraRules:
+    - apiGroups:
+        - ""
+      resources:
+        - serviceaccounts
+      verbs:
+        - get
+        - list
+        - patch
+
+podLabels:
+  appthrust.io/pod-test: "true"
+
+podAnnotations:
+  appthrust.io/pod-rendered-by: helm-template
+
+operatorConfig:
+  create: true
+  spec:
+    permissionsBoundaryARN: arn:aws:iam::123456789012:policy/appthrust-workload-identity-boundary
+    selfHostedIRSA:
+      webhookNamespace: aws-pod-identity-webhook

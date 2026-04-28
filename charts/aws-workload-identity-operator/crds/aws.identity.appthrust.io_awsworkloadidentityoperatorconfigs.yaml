@@ -1,0 +1,86 @@
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  annotations:
+    controller-gen.kubebuilder.io/version: v0.19.0
+  name: awsworkloadidentityoperatorconfigs.aws.identity.appthrust.io
+spec:
+  group: aws.identity.appthrust.io
+  names:
+    kind: AWSWorkloadIdentityOperatorConfig
+    listKind: AWSWorkloadIdentityOperatorConfigList
+    plural: awsworkloadidentityoperatorconfigs
+    shortNames:
+    - awioc
+    singular: awsworkloadidentityoperatorconfig
+  scope: Cluster
+  versions:
+  - additionalPrinterColumns:
+    - jsonPath: .spec.selfHostedIRSA.webhookNamespace
+      name: Webhook-Namespace
+      type: string
+    - jsonPath: .spec.permissionsBoundaryARN
+      name: Permissions-Boundary
+      priority: 1
+      type: string
+    - jsonPath: .metadata.creationTimestamp
+      name: Age
+      type: date
+    name: v1alpha1
+    schema:
+      openAPIV3Schema:
+        description: AWSWorkloadIdentityOperatorConfig configures cluster-wide operator
+          behavior.
+        properties:
+          apiVersion:
+            description: |-
+              APIVersion defines the versioned schema of this representation of an object.
+              Servers should convert recognized schemas to the latest internal value, and
+              may reject unrecognized values.
+              More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources
+            type: string
+          kind:
+            description: |-
+              Kind is a string value representing the REST resource this object represents.
+              Servers may infer this from the endpoint the client submits requests to.
+              Cannot be updated.
+              In CamelCase.
+              More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds
+            type: string
+          metadata:
+            type: object
+          spec:
+            description: AWSWorkloadIdentityOperatorConfigSpec defines cluster-wide
+              operator defaults.
+            properties:
+              permissionsBoundaryARN:
+                maxLength: 2048
+                minLength: 1
+                pattern: ^arn:aws[a-z0-9-]*:iam::(aws|[0-9]{12}):policy/[\w+=,.@/-]+$
+                type: string
+              selfHostedIRSA:
+                default: {}
+                description: SelfHostedIRSAConfig configures self-hosted IRSA runtime
+                  delivery.
+                properties:
+                  webhookNamespace:
+                    default: aws-pod-identity-webhook
+                    maxLength: 63
+                    minLength: 1
+                    pattern: ^[a-z0-9]([-a-z0-9]*[a-z0-9])?$
+                    type: string
+                    x-kubernetes-validations:
+                    - message: spec.selfHostedIRSA.webhookNamespace is immutable
+                      rule: self == oldSelf
+                type: object
+            type: object
+        required:
+        - spec
+        type: object
+        x-kubernetes-validations:
+        - message: metadata.name must be default
+          rule: self.metadata.name == 'default'
+    served: true
+    storage: true
+    subresources: {}
