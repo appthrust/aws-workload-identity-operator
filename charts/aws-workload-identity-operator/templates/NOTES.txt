@@ -1,0 +1,7 @@
+AWS Workload Identity Operator has been installed.
+
+Namespace: {{ include "awio.namespace" . }}
+Manager image: {{ include "awio.managerImage" . }}
+
+Create an AWSWorkloadIdentityOperatorConfig before creating workload identity resources.
+Set operatorConfig.create=true to manage that object from this Helm release.
