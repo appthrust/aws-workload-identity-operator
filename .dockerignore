@@ -1,0 +1,13 @@
+.git
+.github
+.idea
+.vscode
+charts
+config
+design
+test
+node_modules
+coverage.*
+*.out
+*.test
+*.tmp

@@ -1,0 +1,8 @@
+apiVersion: aws.identity.appthrust.io/v1alpha1
+kind: AWSWorkloadIdentityConfig
+metadata:
+  name: default
+  namespace: wlc-a
+spec:
+  type: SelfHostedIRSA
+  region: ap-northeast-1

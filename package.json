@@ -1,0 +1,12 @@
+{
+  "name": "aws-workload-identity-operator",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test:kest": "bun test test/kest"
+  },
+  "devDependencies": {
+    "@appthrust/kest": "file:../kest",
+    "typescript": "^5.9.0"
+  }
+}
