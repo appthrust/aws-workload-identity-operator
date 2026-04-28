@@ -1,0 +1,25 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: eks-prod
+---
+apiVersion: aws.identity.appthrust.io/v1alpha1
+kind: AWSWorkloadIdentityConfig
+metadata:
+  name: default
+  namespace: eks-prod
+spec:
+  type: EKSPodIdentity
+  region: ap-northeast-1
+---
+apiVersion: aws.identity.appthrust.io/v1alpha1
+kind: AWSServiceAccountRole
+metadata:
+  name: karpenter
+  namespace: eks-prod
+spec:
+  serviceAccount:
+    namespace: kube-system
+    name: karpenter
+  policyARNs:
+    - arn:aws:iam::123456789012:policy/karpenter-controller-prod

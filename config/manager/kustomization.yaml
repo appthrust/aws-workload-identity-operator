@@ -1,0 +1,3 @@
+resources:
+- manager.yaml
+- provider-config.yaml

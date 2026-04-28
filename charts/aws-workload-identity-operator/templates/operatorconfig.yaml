@@ -1,0 +1,17 @@
+{{- if .Values.operatorConfig.create }}
+apiVersion: aws.identity.appthrust.io/v1alpha1
+kind: AWSWorkloadIdentityOperatorConfig
+metadata:
+  name: {{ .Values.operatorConfig.name }}
+  labels:
+    {{- include "awio.labels" . | nindent 4 }}
+    {{- with .Values.operatorConfig.labels }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+  {{- with merge .Values.operatorConfig.annotations .Values.commonAnnotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  {{- toYaml .Values.operatorConfig.spec | nindent 2 }}
+{{- end }}
