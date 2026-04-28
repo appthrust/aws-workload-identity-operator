@@ -1,0 +1,33 @@
+{{- $inventory := .Values.clusterInventory | default dict }}
+{{- $accessProvidersConfig := $inventory.accessProvidersConfig | default dict }}
+{{- $mountPaths := list }}
+{{- range ($inventory.plugins | default (list)) }}
+{{-   $mountPaths = append $mountPaths .mountPath }}
+{{- end }}
+{{- range ($accessProvidersConfig.providers | default (list)) }}
+{{-   $cmd := (.execConfig | default dict).command | default "" }}
+{{-   if $cmd }}
+{{-     $matchesMountPath := false }}
+{{-     range $mountPath := $mountPaths }}
+{{-       if or (eq $cmd $mountPath) (hasPrefix (printf "%s/" $mountPath) $cmd) }}
+{{-         $matchesMountPath = true }}
+{{-       end }}
+{{-     end }}
+{{-     if not $matchesMountPath }}
+{{-       fail (printf "provider %q: command %q does not live under any clusterInventory.plugins[].mountPath %v" .name $cmd $mountPaths) }}
+{{-     end }}
+{{-   end }}
+{{- end }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "awio.clusterInventoryProviderConfigMapName" . }}
+  namespace: {{ include "awio.namespace" . }}
+  labels:
+    {{- include "awio.labels" . | nindent 4 }}
+  {{- with .Values.commonAnnotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+data:
+  config.json: {{ $accessProvidersConfig | mustToJson | quote }}

@@ -1,0 +1,230 @@
+{{- $loggingResourceAttributes := include "awio.loggingResourceAttributes" . -}}
+{{- $loggingOTLPHeaders := include "awio.loggingOTLPHeaders" . -}}
+{{- $loggingOTLPLogsHeaders := include "awio.loggingOTLPLogsHeaders" . -}}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "awio.fullname" . }}
+  namespace: {{ include "awio.namespace" . }}
+  labels:
+    {{- include "awio.labels" . | nindent 4 }}
+  {{- with merge .Values.deploymentAnnotations .Values.commonAnnotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  revisionHistoryLimit: {{ .Values.revisionHistoryLimit }}
+  selector:
+    matchLabels:
+      {{- include "awio.selectorLabels" . | nindent 6 }}
+  strategy:
+    {{- toYaml .Values.updateStrategy | nindent 4 }}
+  template:
+    metadata:
+      labels:
+        {{- include "awio.selectorLabels" . | nindent 8 }}
+        {{- with .Values.commonLabels }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+        {{- with .Values.podLabels }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+      annotations:
+        checksum/clusterprofile-provider-file: {{ .Values.clusterInventory.accessProvidersConfig | mustToJson | sha256sum }}
+        {{- with .Values.podAnnotations }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+    spec:
+      serviceAccountName: {{ include "awio.serviceAccountName" . }}
+      automountServiceAccountToken: {{ .Values.podAutomountServiceAccountToken }}
+      {{- include "awio.imagePullSecrets" . | nindent 6 }}
+      {{- if .Values.podSecurityContext.enabled }}
+      securityContext:
+        {{- omit .Values.podSecurityContext "enabled" | toYaml | nindent 8 }}
+      {{- end }}
+      {{- with .Values.priorityClassName }}
+      priorityClassName: {{ . | quote }}
+      {{- end }}
+      {{- with .Values.schedulerName }}
+      schedulerName: {{ . | quote }}
+      {{- end }}
+      terminationGracePeriodSeconds: {{ .Values.terminationGracePeriodSeconds }}
+      {{- with .Values.initContainers }}
+      initContainers:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: manager
+          image: {{ include "awio.managerImage" . | quote }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          {{- if .Values.containerSecurityContext.enabled }}
+          securityContext:
+            {{- omit .Values.containerSecurityContext "enabled" | toYaml | nindent 12 }}
+          {{- end }}
+          args:
+            - {{ printf "--metrics-bind-address=:%d" (int .Values.metrics.containerPort) | quote }}
+            - {{ printf "--health-probe-bind-address=:%d" (int .Values.containerPorts.health) | quote }}
+            {{- if .Values.operator.leaderElection.enabled }}
+            - --leader-elect
+            {{- end }}
+            - "--clusterprofile-provider-file=/etc/cluster-inventory/config.json"
+            - {{ printf "--pod-identity-webhook-image=%s" .Values.operator.podIdentityWebhookImage | quote }}
+            - --aws-endpoint-url
+            - "$(AWS_ENDPOINT_URL)"
+            {{- if .Values.aws.allowUnsafeEndpointURLs }}
+            - --allow-unsafe-aws-endpoint-urls
+            {{- end }}
+            {{- if .Values.s3.usePathStyle }}
+            - --s3-use-path-style
+            {{- end }}
+            - {{ printf "--log-level=%s" .Values.logging.level | quote }}
+            - {{ printf "--log-exporter=%s" .Values.logging.exporter | quote }}
+            - {{ printf "--log-add-source=%t" .Values.logging.addSource | quote }}
+            - {{ printf "--log-resource-attributes=%s" $loggingResourceAttributes | quote }}
+            {{- with .Values.operator.extraArgs }}
+            {{- toYaml . | nindent 12 }}
+            {{- end }}
+          env:
+            - name: AWS_ENDPOINT_URL
+              value: {{ .Values.aws.endpointURL | quote }}
+            {{- with .Values.logging.resource.serviceName }}
+            - name: OTEL_SERVICE_NAME
+              value: {{ . | quote }}
+            {{- end }}
+            {{- with $loggingResourceAttributes }}
+            - name: OTEL_RESOURCE_ATTRIBUTES
+              value: {{ . | quote }}
+            {{- end }}
+            {{- with .Values.logging.exporter }}
+            - name: OTEL_LOGS_EXPORTER
+              value: {{ . | quote }}
+            {{- end }}
+            {{- with .Values.logging.otlp.endpoint }}
+            - name: OTEL_EXPORTER_OTLP_ENDPOINT
+              value: {{ . | quote }}
+            {{- end }}
+            {{- with .Values.logging.otlp.logsEndpoint }}
+            - name: OTEL_EXPORTER_OTLP_LOGS_ENDPOINT
+              value: {{ . | quote }}
+            {{- end }}
+            {{- with .Values.logging.otlp.protocol }}
+            - name: OTEL_EXPORTER_OTLP_PROTOCOL
+              value: {{ . | quote }}
+            {{- end }}
+            {{- with .Values.logging.otlp.logsProtocol }}
+            - name: OTEL_EXPORTER_OTLP_LOGS_PROTOCOL
+              value: {{ . | quote }}
+            {{- end }}
+            {{- if .Values.logging.otlp.insecure }}
+            - name: OTEL_EXPORTER_OTLP_INSECURE
+              value: {{ .Values.logging.otlp.insecure | quote }}
+            {{- end }}
+            {{- if .Values.logging.otlp.logsInsecure }}
+            - name: OTEL_EXPORTER_OTLP_LOGS_INSECURE
+              value: {{ .Values.logging.otlp.logsInsecure | quote }}
+            {{- end }}
+            {{- with $loggingOTLPHeaders }}
+            - name: OTEL_EXPORTER_OTLP_HEADERS
+              value: {{ . | quote }}
+            {{- end }}
+            {{- with $loggingOTLPLogsHeaders }}
+            - name: OTEL_EXPORTER_OTLP_LOGS_HEADERS
+              value: {{ . | quote }}
+            {{- end }}
+            {{- with .Values.extraEnvVars }}
+            {{- toYaml . | nindent 12 }}
+            {{- end }}
+          {{- if or .Values.extraEnvVarsCM .Values.extraEnvVarsSecret }}
+          envFrom:
+            {{- if .Values.extraEnvVarsCM }}
+            - configMapRef:
+                name: {{ .Values.extraEnvVarsCM }}
+            {{- end }}
+            {{- if .Values.extraEnvVarsSecret }}
+            - secretRef:
+                name: {{ .Values.extraEnvVarsSecret }}
+            {{- end }}
+          {{- end }}
+          ports:
+            - name: webhook
+              containerPort: {{ .Values.containerPorts.webhook }}
+              protocol: TCP
+            - name: metrics
+              containerPort: {{ .Values.metrics.containerPort }}
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: {{ .Values.containerPorts.health }}
+            initialDelaySeconds: {{ .Values.livenessProbe.initialDelaySeconds }}
+            periodSeconds: {{ .Values.livenessProbe.periodSeconds }}
+            timeoutSeconds: {{ .Values.livenessProbe.timeoutSeconds }}
+            failureThreshold: {{ .Values.livenessProbe.failureThreshold }}
+            successThreshold: {{ .Values.livenessProbe.successThreshold }}
+          readinessProbe:
+            httpGet:
+              path: /readyz
+              port: {{ .Values.containerPorts.health }}
+            initialDelaySeconds: {{ .Values.readinessProbe.initialDelaySeconds }}
+            periodSeconds: {{ .Values.readinessProbe.periodSeconds }}
+            timeoutSeconds: {{ .Values.readinessProbe.timeoutSeconds }}
+            failureThreshold: {{ .Values.readinessProbe.failureThreshold }}
+            successThreshold: {{ .Values.readinessProbe.successThreshold }}
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+          volumeMounts:
+            - name: clusterprofile-provider-file
+              mountPath: /etc/cluster-inventory
+              readOnly: true
+            {{- range (.Values.clusterInventory.plugins | default list) }}
+            - name: {{ .name }}
+              mountPath: {{ .mountPath }}
+              readOnly: true
+            {{- end }}
+            - name: webhook-certs
+              mountPath: /tmp/k8s-webhook-server/serving-certs
+              readOnly: true
+            {{- with .Values.extraVolumeMounts }}
+            {{- toYaml . | nindent 12 }}
+            {{- end }}
+        {{- with .Values.sidecars }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+      volumes:
+        - name: clusterprofile-provider-file
+          configMap:
+            name: {{ include "awio.clusterInventoryProviderConfigMapName" . }}
+            items:
+              - key: config.json
+                path: config.json
+        {{- range (.Values.clusterInventory.plugins | default list) }}
+        - name: {{ .name }}
+          image:
+            reference: {{ .image | quote }}
+            {{- with .pullPolicy }}
+            pullPolicy: {{ . }}
+            {{- end }}
+        {{- end }}
+        - name: webhook-certs
+          secret:
+            secretName: {{ include "awio.webhookTLSSecretName" . }}
+        {{- with .Values.extraVolumes }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.topologySpreadConstraints }}
+      topologySpreadConstraints:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}

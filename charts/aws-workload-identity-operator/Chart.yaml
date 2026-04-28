@@ -1,0 +1,18 @@
+apiVersion: v2
+name: aws-workload-identity-operator
+description: Helm chart for the AWS Workload Identity Operator
+type: application
+version: 0.2.0
+appVersion: "0.2.0"
+kubeVersion: ">=1.33.0-0"
+home: https://github.com/appthrust/aws-workload-identity-operator
+sources:
+  - https://github.com/appthrust/aws-workload-identity-operator
+keywords:
+  - aws
+  - workload-identity
+  - irsa
+  - eks
+  - operator
+maintainers:
+  - name: appthrust

@@ -1,0 +1,14 @@
+.git/
+.github/
+.idea/
+.vscode/
+*.swp
+*.tmp
+*.bak
+*.orig
+*.test
+*.out
+coverage.*
+node_modules/
+dist/
+bin/

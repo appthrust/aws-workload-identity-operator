@@ -1,0 +1,183 @@
+global:
+  imageRegistry: ""
+  imagePullSecrets: []
+
+kubeVersion: ""
+nameOverride: ""
+fullnameOverride: ""
+namespaceOverride: ""
+clusterDomain: cluster.local
+commonLabels: {}
+commonAnnotations: {}
+
+image:
+  registry: ghcr.io
+  repository: appthrust/aws-workload-identity-operator
+  # Empty tag falls back to .Chart.AppVersion (see _helpers.tpl: awio.image),
+  # making Chart.yaml the single source of version truth across releases.
+  tag: ""
+  digest: ""
+  pullPolicy: IfNotPresent
+  pullSecrets: []
+
+replicaCount: 1
+revisionHistoryLimit: 10
+
+updateStrategy:
+  type: RollingUpdate
+
+operator:
+  leaderElection:
+    enabled: true
+  podIdentityWebhookImage: public.ecr.aws/eks/amazon-eks-pod-identity-webhook:v0.6.14
+  extraArgs: []
+
+aws:
+  endpointURL: ""
+  allowUnsafeEndpointURLs: false
+
+s3:
+  usePathStyle: false
+
+logging:
+  level: info
+  exporter: otlp
+  addSource: false
+  resource:
+    serviceName: aws-workload-identity-operator
+    serviceNamespace: appthrust
+    serviceVersion: ""
+    deploymentEnvironmentName: ""
+    attributes: {}
+  console:
+    enabled: false
+  otlp:
+    endpoint: ""
+    logsEndpoint: ""
+    protocol: http/protobuf
+    logsProtocol: ""
+    insecure: false
+    logsInsecure: false
+    headers: {}
+    logsHeaders: {}
+
+clusterInventory:
+  accessProvidersConfig:
+    providers:
+      - name: open-cluster-management
+        execConfig:
+          apiVersion: client.authentication.k8s.io/v1
+          command: /plugins/cp-creds
+          args:
+            - --managed-serviceaccount=aws-workload-identity-operator
+          provideClusterInfo: true
+          interactiveMode: Never
+  plugins:
+    - name: open-cluster-management
+      # Do not pin cp-creds by SHA yet; upstream digests change frequently while it stabilizes.
+      image: quay.io/open-cluster-management/cp-creds:latest
+      mountPath: /plugins
+      pullPolicy: IfNotPresent
+
+serviceAccount:
+  create: true
+  name: ""
+  annotations: {}
+  labels: {}
+
+rbac:
+  annotations: {}
+  extraRules: []
+
+metrics:
+  containerPort: 8080
+  service:
+    enabled: false
+    type: ClusterIP
+    port: 8080
+    annotations: {}
+
+serviceMonitor:
+  enabled: false
+  namespace: ""
+  labels: {}
+  annotations: {}
+  interval: 30s
+  scrapeTimeout: 10s
+  path: /metrics
+  scheme: http
+  honorLabels: false
+  relabelings: []
+  metricRelabelings: []
+  namespaceSelector: {}
+
+containerPorts:
+  webhook: 9443
+  health: 8081
+
+livenessProbe:
+  initialDelaySeconds: 15
+  periodSeconds: 20
+  timeoutSeconds: 1
+  failureThreshold: 3
+  successThreshold: 1
+
+readinessProbe:
+  initialDelaySeconds: 5
+  periodSeconds: 10
+  timeoutSeconds: 1
+  failureThreshold: 3
+  successThreshold: 1
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 128Mi
+  limits:
+    memory: 256Mi
+
+podSecurityContext:
+  enabled: true
+  fsGroup: 65532
+  runAsNonRoot: true
+  seccompProfile:
+    type: RuntimeDefault
+
+containerSecurityContext:
+  enabled: true
+  allowPrivilegeEscalation: false
+  capabilities:
+    drop:
+      - ALL
+  readOnlyRootFilesystem: true
+  runAsGroup: 65532
+  runAsNonRoot: true
+  runAsUser: 65532
+
+podLabels: {}
+podAnnotations: {}
+podAutomountServiceAccountToken: true
+deploymentAnnotations: {}
+priorityClassName: ""
+schedulerName: ""
+terminationGracePeriodSeconds: 10
+
+nodeSelector: {}
+tolerations: []
+affinity: {}
+topologySpreadConstraints: []
+
+extraEnvVars: []
+extraEnvVarsCM: ""
+extraEnvVarsSecret: ""
+extraVolumeMounts: []
+extraVolumes: []
+initContainers: []
+sidecars: []
+
+operatorConfig:
+  create: false
+  name: default
+  annotations: {}
+  labels: {}
+  spec: {}
