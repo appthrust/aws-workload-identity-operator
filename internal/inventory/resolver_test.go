@@ -1,0 +1,229 @@
+package inventory
+
+import (
+	"context"
+	"testing"
+
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/runtime"
+	clusterinventoryv1alpha1 "sigs.k8s.io/cluster-inventory-api/apis/v1alpha1"
+	"sigs.k8s.io/controller-runtime/pkg/client/fake"
+
+	identityv1 "github.com/appthrust/aws-workload-identity-operator/api/v1alpha1"
+)
+
+const testClusterName = "wlc-a"
+
+func TestResolverCopiesClusterProfileProperties(t *testing.T) {
+	scheme := runtime.NewScheme()
+	if err := clusterinventoryv1alpha1.AddToScheme(scheme); err != nil {
+		t.Fatal(err)
+	}
+
+	profile := &clusterinventoryv1alpha1.ClusterProfile{
+		ObjectMeta: metav1.ObjectMeta{
+			Namespace: testClusterName,
+			Name:      testClusterName,
+			Labels: map[string]string{
+				clusterinventoryv1alpha1.LabelClusterManagerKey: ocmClusterProfileManagerName,
+			},
+		},
+		Spec: clusterinventoryv1alpha1.ClusterProfileSpec{
+			ClusterManager: clusterinventoryv1alpha1.ClusterManager{Name: ocmClusterProfileManagerName},
+		},
+		Status: clusterinventoryv1alpha1.ClusterProfileStatus{
+			Conditions: []metav1.Condition{{
+				Type:   clusterinventoryv1alpha1.ClusterConditionControlPlaneHealthy,
+				Status: metav1.ConditionTrue,
+				Reason: "Healthy",
+			}},
+			AccessProviders: []clusterinventoryv1alpha1.AccessProvider{{Name: ocmClusterProfileManagerName}},
+			Properties: []clusterinventoryv1alpha1.Property{{
+				Name:  PropertyEKSClusterName,
+				Value: "prod",
+			}, {
+				Name:  PropertyAWSRegion,
+				Value: "us-east-1",
+			}},
+		},
+	}
+	c := fake.NewClientBuilder().WithScheme(scheme).WithObjects(profile).WithStatusSubresource(profile).Build()
+
+	resolved, err := Resolver{Client: c}.Resolve(context.Background(), testClusterName)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if !resolved.Ready {
+		t.Fatalf("expected ready resolution: %#v", resolved)
+	}
+
+	if resolved.ClusterName.String() != testClusterName+"/"+testClusterName {
+		t.Fatalf("unexpected cluster name: %s", resolved.ClusterName.String())
+	}
+
+	if resolved.EKSClusterName != "prod" || resolved.AWSRegion != "us-east-1" {
+		t.Fatalf("expected properties to be copied: %#v", resolved)
+	}
+}
+
+func TestResolverIgnoresSlashFormAWSRegionProperty(t *testing.T) {
+	scheme := runtime.NewScheme()
+	if err := clusterinventoryv1alpha1.AddToScheme(scheme); err != nil {
+		t.Fatal(err)
+	}
+
+	profile := &clusterinventoryv1alpha1.ClusterProfile{
+		ObjectMeta: metav1.ObjectMeta{
+			Namespace: testClusterName,
+			Name:      testClusterName,
+			Labels: map[string]string{
+				clusterinventoryv1alpha1.LabelClusterManagerKey: ocmClusterProfileManagerName,
+			},
+		},
+		Spec: clusterinventoryv1alpha1.ClusterProfileSpec{
+			ClusterManager: clusterinventoryv1alpha1.ClusterManager{Name: ocmClusterProfileManagerName},
+		},
+		Status: clusterinventoryv1alpha1.ClusterProfileStatus{
+			AccessProviders: []clusterinventoryv1alpha1.AccessProvider{{Name: ocmClusterProfileManagerName}},
+			Properties: []clusterinventoryv1alpha1.Property{{
+				Name:  "aws.identity.appthrust.io/aws-region",
+				Value: "us-west-2",
+			}},
+		},
+	}
+	c := fake.NewClientBuilder().WithScheme(scheme).WithObjects(profile).WithStatusSubresource(profile).Build()
+
+	resolved, err := Resolver{Client: c}.Resolve(context.Background(), testClusterName)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if !resolved.Ready {
+		t.Fatalf("expected ready resolution: %#v", resolved)
+	}
+
+	if resolved.AWSRegion != "" {
+		t.Fatalf("AWSRegion = %q, want empty because slash-form property is not supported", resolved.AWSRegion)
+	}
+}
+
+func TestResolverDirectClusterProfileNotReadyUntilAccessProviderPresent(t *testing.T) {
+	scheme := runtime.NewScheme()
+	if err := clusterinventoryv1alpha1.AddToScheme(scheme); err != nil {
+		t.Fatal(err)
+	}
+
+	profile := &clusterinventoryv1alpha1.ClusterProfile{
+		ObjectMeta: metav1.ObjectMeta{
+			Namespace: testClusterName,
+			Name:      testClusterName,
+			Labels: map[string]string{
+				clusterinventoryv1alpha1.LabelClusterManagerKey: ocmClusterProfileManagerName,
+			},
+		},
+		Spec: clusterinventoryv1alpha1.ClusterProfileSpec{
+			ClusterManager: clusterinventoryv1alpha1.ClusterManager{Name: ocmClusterProfileManagerName},
+		},
+		Status: clusterinventoryv1alpha1.ClusterProfileStatus{
+			Properties: []clusterinventoryv1alpha1.Property{{
+				Name:  PropertyEKSClusterName,
+				Value: "prod",
+			}},
+		},
+	}
+	c := fake.NewClientBuilder().WithScheme(scheme).WithObjects(profile).WithStatusSubresource(profile).Build()
+
+	resolved, err := Resolver{Client: c}.Resolve(context.Background(), testClusterName)
+	if err != nil {
+		t.Fatalf("unexpected error: %#v", err)
+	}
+
+	if resolved.Ready {
+		t.Fatalf("expected not-ready resolution while access providers are absent: %#v", resolved)
+	}
+
+	if resolved.Reason != identityv1.ReasonInventoryUnavailable {
+		t.Fatalf("expected reason %q, got %q (resolution: %#v)", identityv1.ReasonInventoryUnavailable, resolved.Reason, resolved)
+	}
+
+	if resolved.ClusterName.Name != testClusterName {
+		t.Fatalf("expected cluster name %q, got %q (resolution: %#v)", testClusterName, resolved.ClusterName.Name, resolved)
+	}
+}
+
+func TestResolverFindsOCMClusterProfileByClusterNameLabel(t *testing.T) {
+	scheme := runtime.NewScheme()
+	if err := clusterinventoryv1alpha1.AddToScheme(scheme); err != nil {
+		t.Fatal(err)
+	}
+
+	profile := &clusterinventoryv1alpha1.ClusterProfile{
+		ObjectMeta: metav1.ObjectMeta{
+			Namespace: "awio-system",
+			Name:      testClusterName,
+			Labels: map[string]string{
+				LabelOCMClusterName:                             testClusterName,
+				clusterinventoryv1alpha1.LabelClusterManagerKey: ocmClusterProfileManagerName,
+			},
+		},
+		Spec: clusterinventoryv1alpha1.ClusterProfileSpec{
+			ClusterManager: clusterinventoryv1alpha1.ClusterManager{Name: ocmClusterProfileManagerName},
+		},
+		Status: clusterinventoryv1alpha1.ClusterProfileStatus{
+			AccessProviders: []clusterinventoryv1alpha1.AccessProvider{{Name: ocmClusterProfileManagerName}},
+			Properties: []clusterinventoryv1alpha1.Property{{
+				Name:  PropertyEKSClusterName,
+				Value: "prod",
+			}},
+		},
+	}
+	c := fake.NewClientBuilder().WithScheme(scheme).WithObjects(profile).WithStatusSubresource(profile).Build()
+
+	resolved, err := Resolver{Client: c}.Resolve(context.Background(), testClusterName)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if !resolved.Ready {
+		t.Fatalf("expected ready resolution: %#v", resolved)
+	}
+
+	if resolved.ClusterName.String() != testClusterName+"/"+testClusterName {
+		t.Fatalf("unexpected logical cluster name: %s", resolved.ClusterName.String())
+	}
+
+	if resolved.EKSClusterName != "prod" {
+		t.Fatalf("expected properties to be copied")
+	}
+}
+
+func TestResolverReturnsFalseForMissingClusterProfile(t *testing.T) {
+	scheme := runtime.NewScheme()
+	if err := clusterinventoryv1alpha1.AddToScheme(scheme); err != nil {
+		t.Fatal(err)
+	}
+
+	c := fake.NewClientBuilder().WithScheme(scheme).Build()
+
+	resolved, err := Resolver{Client: c}.Resolve(context.Background(), testClusterName)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if resolved.Ready || resolved.Reason != "ClusterProfileNotFound" {
+		t.Fatalf("expected missing ClusterProfile failure: %#v", resolved)
+	}
+}
+
+func TestResolutionRequireEKS(t *testing.T) {
+	ready := Resolution{Ready: true, EKSClusterName: "prod", EKSClusterARN: "arn", AWSAccountID: "123456789012"}
+	if err := ready.RequireEKS(); err != nil {
+		t.Fatal(err)
+	}
+
+	missing := Resolution{Ready: true}
+	if err := missing.RequireEKS(); err == nil {
+		t.Fatalf("expected missing EKS fields to fail")
+	}
+}
