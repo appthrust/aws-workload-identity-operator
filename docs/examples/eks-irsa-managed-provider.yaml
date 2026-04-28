@@ -1,0 +1,45 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: eks-prod
+---
+apiVersion: aws.identity.appthrust.io/v1alpha1
+kind: AWSWorkloadIdentityConfig
+metadata:
+  name: default
+  namespace: eks-prod
+spec:
+  type: EKSIRSA
+  region: ap-northeast-1
+  eksIRSA:
+    issuerURL: https://oidc.eks.ap-northeast-1.amazonaws.com/id/EXAMPLEA1B2C3D4E5F6
+    oidcProvider:
+      management: Managed
+---
+apiVersion: aws.identity.appthrust.io/v1alpha1
+kind: AWSServiceAccountRole
+metadata:
+  name: external-dns
+  namespace: eks-prod
+spec:
+  serviceAccount:
+    namespace: external-dns
+    name: external-dns
+  # policyDocument is the raw JSON encoding of an AWS IAM policy. The CRD
+  # bounds its length to AWS's 6144-character customer-managed policy limit.
+  policyDocument: |
+    {
+      "Version": "2012-10-17",
+      "Statement": [
+        {
+          "Effect": "Allow",
+          "Action": ["route53:ChangeResourceRecordSets"],
+          "Resource": ["arn:aws:route53:::hostedzone/Z1111111111111"]
+        },
+        {
+          "Effect": "Allow",
+          "Action": ["route53:ListHostedZones", "route53:ListResourceRecordSets"],
+          "Resource": "*"
+        }
+      ]
+    }

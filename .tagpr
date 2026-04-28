@@ -1,0 +1,9 @@
+# tagpr configuration
+# https://github.com/Songmu/tagpr
+[tagpr]
+	vPrefix = true
+	releaseBranch = main
+	release = draft
+	versionFile = charts/aws-workload-identity-operator/Chart.yaml
+	postVersionCommand = bash hack/sync-chart-version.sh
+	changelog = true

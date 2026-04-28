@@ -1,0 +1,20 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "awio.webhookServiceName" . }}
+  namespace: {{ include "awio.namespace" . }}
+  labels:
+    {{- include "awio.labels" . | nindent 4 }}
+  {{- with .Values.commonAnnotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  type: ClusterIP
+  ports:
+    - name: https
+      port: 443
+      targetPort: webhook
+      protocol: TCP
+  selector:
+    {{- include "awio.selectorLabels" . | nindent 4 }}

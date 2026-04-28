@@ -1,0 +1,47 @@
+name: Verify rendered chart manifests
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    name: Render chart and test manifest shape
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout operator
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+
+      - name: Set up Helm
+        uses: azure/setup-helm@dda3372f752e03dde6b3237bc9431cdc2f7a02a2 # v5
+
+      - name: Set up Bun
+        uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
+        with:
+          bun-version: 1.3.11
+
+      - name: Install Node dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Lint Helm chart
+        run: make helm-lint
+
+      - name: Template default values
+        run: make helm-template >/tmp/aws-workload-identity-operator-default.yaml
+
+      - name: Template test values
+        run: make helm-template-test >/tmp/aws-workload-identity-operator-test.yaml
+
+      - name: Run kest chart tests
+        run: make test-kest
+
+      - name: Package chart
+        run: helm package charts/aws-workload-identity-operator --destination /tmp/charts

@@ -1,0 +1,172 @@
+{{- $namespace := include "awio.namespace" . -}}
+{{- $serviceName := include "awio.webhookServiceName" . -}}
+{{- $secretName := include "awio.webhookTLSSecretName" . -}}
+{{- $dnsNames := fromJsonArray (include "awio.webhookDNSNames" .) -}}
+{{- $selfSignedIssuerName := printf "%s-selfsigned" (include "awio.fullname" .) -}}
+{{- $caCertName := printf "%s-webhook-ca" (include "awio.fullname" .) -}}
+{{- $caSecretName := printf "%s-webhook-ca-tls" (include "awio.fullname" .) -}}
+{{- $caIssuerName := printf "%s-webhook-ca-issuer" (include "awio.fullname" .) -}}
+{{- $servingCertName := printf "%s-webhook" (include "awio.fullname" .) -}}
+apiVersion: cert-manager.io/v1
+kind: Issuer
+metadata:
+  name: {{ $selfSignedIssuerName }}
+  namespace: {{ $namespace }}
+  labels:
+    {{- include "awio.labels" . | nindent 4 }}
+  {{- with .Values.commonAnnotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  selfSigned: {}
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: {{ $caCertName }}
+  namespace: {{ $namespace }}
+  labels:
+    {{- include "awio.labels" . | nindent 4 }}
+  {{- with .Values.commonAnnotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  secretName: {{ $caSecretName }}
+  duration: 87600h
+  renewBefore: 8760h
+  isCA: true
+  commonName: {{ $caCertName }}
+  privateKey:
+    # cert-manager v1.18+ defaulted rotationPolicy to Always. The CA private key
+    # must stay stable; rotating it on renewal would invalidate every previously
+    # signed serving cert and re-introduce the trust break this split avoids.
+    rotationPolicy: Never
+  issuerRef:
+    name: {{ $selfSignedIssuerName }}
+    kind: Issuer
+---
+apiVersion: cert-manager.io/v1
+kind: Issuer
+metadata:
+  name: {{ $caIssuerName }}
+  namespace: {{ $namespace }}
+  labels:
+    {{- include "awio.labels" . | nindent 4 }}
+  {{- with .Values.commonAnnotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  ca:
+    secretName: {{ $caSecretName }}
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: {{ $servingCertName }}
+  namespace: {{ $namespace }}
+  labels:
+    {{- include "awio.labels" . | nindent 4 }}
+  {{- with .Values.commonAnnotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  secretName: {{ $secretName }}
+  duration: 8760h
+  renewBefore: 720h
+  privateKey:
+    rotationPolicy: Always
+  isCA: false
+  usages:
+    - server auth
+  dnsNames:
+    {{- range $dnsNames }}
+    - {{ . | quote }}
+    {{- end }}
+  issuerRef:
+    name: {{ $caIssuerName }}
+    kind: Issuer
+---
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingWebhookConfiguration
+metadata:
+  name: {{ include "awio.fullname" . }}-validating
+  labels:
+    {{- include "awio.labels" . | nindent 4 }}
+  annotations:
+    cert-manager.io/inject-ca-from: {{ printf "%s/%s" $namespace $caCertName | quote }}
+    {{- with .Values.commonAnnotations }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+webhooks:
+  - name: vawsworkloadidentityconfig.aws.identity.appthrust.io
+    admissionReviewVersions:
+      - v1
+    sideEffects: None
+    failurePolicy: Fail
+    matchPolicy: Equivalent
+    timeoutSeconds: 10
+    clientConfig:
+      service:
+        name: {{ $serviceName }}
+        namespace: {{ $namespace }}
+        path: /validate-aws-identity-appthrust-io-v1alpha1-awsworkloadidentityconfig
+        port: 443
+    rules:
+      - apiGroups:
+          - aws.identity.appthrust.io
+        apiVersions:
+          - v1alpha1
+        operations:
+          - DELETE
+        resources:
+          - awsworkloadidentityconfigs
+  - name: vawsserviceaccountrole.aws.identity.appthrust.io
+    admissionReviewVersions:
+      - v1
+    sideEffects: None
+    failurePolicy: Fail
+    matchPolicy: Equivalent
+    timeoutSeconds: 10
+    clientConfig:
+      service:
+        name: {{ $serviceName }}
+        namespace: {{ $namespace }}
+        path: /validate-aws-identity-appthrust-io-v1alpha1-awsserviceaccountrole
+        port: 443
+    rules:
+      - apiGroups:
+          - aws.identity.appthrust.io
+        apiVersions:
+          - v1alpha1
+        operations:
+          - CREATE
+          - UPDATE
+        resources:
+          - awsserviceaccountroles
+  - name: vawsserviceaccountrolereplicaset.aws.identity.appthrust.io
+    admissionReviewVersions:
+      - v1
+    sideEffects: None
+    failurePolicy: Fail
+    matchPolicy: Equivalent
+    timeoutSeconds: 10
+    clientConfig:
+      service:
+        name: {{ $serviceName }}
+        namespace: {{ $namespace }}
+        path: /validate-aws-identity-appthrust-io-v1alpha1-awsserviceaccountrolereplicaset
+        port: 443
+    rules:
+      - apiGroups:
+          - aws.identity.appthrust.io
+        apiVersions:
+          - v1alpha1
+        operations:
+          - CREATE
+          - UPDATE
+        resources:
+          - awsserviceaccountrolereplicasets
