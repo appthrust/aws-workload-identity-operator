@@ -1,0 +1,114 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: controller-manager
+  namespace: system
+  labels:
+    app.kubernetes.io/name: aws-workload-identity-operator
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: aws-workload-identity-operator
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: aws-workload-identity-operator
+    spec:
+      serviceAccountName: controller-manager
+      # Must exceed controller-runtime's GracefulShutdownTimeout (30s default,
+      # pkg/manager/internal.go defaultGracefulShutdownPeriod) plus the OTEL
+      # logger shutdown window (10s, cmd/manager/main.go shutdownLogging) so
+      # in-flight reconciles and finalizer cleanup can drain before SIGKILL.
+      # Kept in lockstep with charts/aws-workload-identity-operator/values.yaml.
+      terminationGracePeriodSeconds: 60
+      # Pod Security Standards "Restricted" baseline. Mirrors
+      # charts/aws-workload-identity-operator/values.yaml podSecurityContext so
+      # `kustomize build config/default` and `helm template` produce the same
+      # security posture for the manager Pod.
+      securityContext:
+        fsGroup: 65532
+        runAsNonRoot: true
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+      - name: manager
+        image: controller:latest
+        # Pod Security Standards "Restricted" baseline. Mirrors
+        # charts/aws-workload-identity-operator/values.yaml
+        # containerSecurityContext. The manager process performs no local
+        # filesystem writes (webhook certs, cluster-inventory config, and the
+        # OCM plugin image volume are mounted readOnly), so
+        # readOnlyRootFilesystem is safe.
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+              - ALL
+          readOnlyRootFilesystem: true
+          runAsGroup: 65532
+          runAsNonRoot: true
+          runAsUser: 65532
+        ports:
+        - name: webhook-server
+          containerPort: 9443
+          protocol: TCP
+        # Kustomize lacks templating; keep this port aligned with --metrics-bind-address below.
+        - name: metrics
+          containerPort: 8080
+          protocol: TCP
+        # Kustomize lacks templating; keep this port aligned with --health-probe-bind-address below.
+        - name: health
+          containerPort: 8081
+          protocol: TCP
+        args:
+        - --leader-elect
+        - --clusterprofile-provider-file=/etc/cluster-inventory/config.json
+        - --health-probe-bind-address=:8081
+        - --metrics-bind-address=:8080
+        livenessProbe:
+          httpGet:
+            path: /healthz
+            port: health
+          initialDelaySeconds: 15
+          periodSeconds: 20
+          timeoutSeconds: 1
+          failureThreshold: 3
+          successThreshold: 1
+        readinessProbe:
+          httpGet:
+            path: /readyz
+            port: health
+          initialDelaySeconds: 5
+          periodSeconds: 10
+          timeoutSeconds: 10
+          failureThreshold: 3
+          successThreshold: 1
+        resources:
+          requests:
+            cpu: 100m
+            memory: 128Mi
+          limits:
+            memory: 256Mi
+        volumeMounts:
+        - name: clusterprofile-provider-file
+          mountPath: /etc/cluster-inventory
+          readOnly: true
+        - name: open-cluster-management
+          mountPath: /plugins
+          readOnly: true
+        - name: webhook-certs
+          mountPath: /tmp/k8s-webhook-server/serving-certs
+          readOnly: true
+      volumes:
+      - name: clusterprofile-provider-file
+        configMap:
+          name: clusterprofile-provider-file
+      - name: open-cluster-management
+        image:
+          # Do not pin cp-creds by SHA yet; upstream digests change frequently while it stabilizes.
+          reference: quay.io/open-cluster-management/cp-creds:latest
+          pullPolicy: IfNotPresent
+      - name: webhook-certs
+        secret:
+          secretName: webhook-server-cert

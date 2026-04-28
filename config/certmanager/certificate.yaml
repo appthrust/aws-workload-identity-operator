@@ -1,0 +1,29 @@
+apiVersion: cert-manager.io/v1
+kind: Issuer
+metadata:
+  name: selfsigned-issuer
+  namespace: system
+spec:
+  selfSigned: {}
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: serving-cert
+  namespace: system
+spec:
+  secretName: webhook-server-cert
+  duration: 87600h
+  renewBefore: 720h
+  privateKey:
+    rotationPolicy: Always
+  isCA: true
+  usages:
+    - server auth
+  dnsNames:
+  - aws-workload-identity-operator-webhook-service.aws-workload-identity-operator-system.svc
+  - aws-workload-identity-operator-webhook-service.aws-workload-identity-operator-system.svc.cluster.local
+  - aws-workload-identity-operator-webhook-service
+  issuerRef:
+    name: selfsigned-issuer
+    kind: Issuer

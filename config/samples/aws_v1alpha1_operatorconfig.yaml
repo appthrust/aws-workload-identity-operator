@@ -1,0 +1,7 @@
+apiVersion: aws.identity.appthrust.io/v1alpha1
+kind: AWSWorkloadIdentityOperatorConfig
+metadata:
+  name: default
+spec:
+  selfHostedIRSA:
+    webhookNamespace: aws-pod-identity-webhook
