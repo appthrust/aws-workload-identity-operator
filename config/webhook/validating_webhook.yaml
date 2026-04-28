@@ -1,0 +1,69 @@
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingWebhookConfiguration
+metadata:
+  name: validating-webhook-configuration
+webhooks:
+- name: vawsworkloadidentityconfig.kb.io
+  admissionReviewVersions: ["v1"]
+  sideEffects: None
+  failurePolicy: Fail
+  matchPolicy: Equivalent
+  timeoutSeconds: 10
+  clientConfig:
+    service:
+      name: webhook-service
+      namespace: system
+      path: /validate-aws-identity-appthrust-io-v1alpha1-awsworkloadidentityconfig
+  rules:
+  - apiGroups: ["aws.identity.appthrust.io"]
+    apiVersions: ["v1alpha1"]
+    operations: ["DELETE"]
+    resources: ["awsworkloadidentityconfigs"]
+- name: vawsserviceaccountrole.kb.io
+  admissionReviewVersions: ["v1"]
+  sideEffects: None
+  failurePolicy: Fail
+  matchPolicy: Equivalent
+  timeoutSeconds: 10
+  clientConfig:
+    service:
+      name: webhook-service
+      namespace: system
+      path: /validate-aws-identity-appthrust-io-v1alpha1-awsserviceaccountrole
+  rules:
+  - apiGroups: ["aws.identity.appthrust.io"]
+    apiVersions: ["v1alpha1"]
+    operations: ["CREATE", "UPDATE"]
+    resources: ["awsserviceaccountroles"]
+- name: vawsworkloadidentityoperatorconfig.kb.io
+  admissionReviewVersions: ["v1"]
+  sideEffects: None
+  failurePolicy: Fail
+  matchPolicy: Equivalent
+  timeoutSeconds: 10
+  clientConfig:
+    service:
+      name: webhook-service
+      namespace: system
+      path: /validate-aws-identity-appthrust-io-v1alpha1-awsworkloadidentityoperatorconfig
+  rules:
+  - apiGroups: ["aws.identity.appthrust.io"]
+    apiVersions: ["v1alpha1"]
+    operations: ["CREATE", "UPDATE"]
+    resources: ["awsworkloadidentityoperatorconfigs"]
+- name: vawsserviceaccountrolereplicaset.kb.io
+  admissionReviewVersions: ["v1"]
+  sideEffects: None
+  failurePolicy: Fail
+  matchPolicy: Equivalent
+  timeoutSeconds: 10
+  clientConfig:
+    service:
+      name: webhook-service
+      namespace: system
+      path: /validate-aws-identity-appthrust-io-v1alpha1-awsserviceaccountrolereplicaset
+  rules:
+  - apiGroups: ["aws.identity.appthrust.io"]
+    apiVersions: ["v1alpha1"]
+    operations: ["CREATE", "UPDATE"]
+    resources: ["awsserviceaccountrolereplicasets"]

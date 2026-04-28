@@ -1,0 +1,198 @@
+global:
+  imageRegistry: ""
+  imagePullSecrets: []
+
+nameOverride: ""
+fullnameOverride: ""
+namespaceOverride: ""
+clusterDomain: cluster.local
+commonLabels: {}
+commonAnnotations: {}
+
+image:
+  registry: ghcr.io
+  repository: appthrust/aws-workload-identity-operator
+  # Empty tag falls back to .Chart.AppVersion (see _helpers.tpl: awio.image),
+  # making Chart.yaml the single source of version truth across releases.
+  tag: "0.1.0"
+  digest: ""
+  pullPolicy: IfNotPresent
+  pullSecrets: []
+
+replicaCount: 1
+revisionHistoryLimit: 10
+
+updateStrategy:
+  type: RollingUpdate
+
+operator:
+  leaderElection:
+    enabled: true
+  podIdentityWebhookImage: public.ecr.aws/eks/amazon-eks-pod-identity-webhook:v0.6.15
+  extraArgs: []
+
+aws:
+  endpointURL: ""
+  allowUnsafeEndpointURLs: false
+
+logging:
+  level: info
+  exporter: otlp
+  addSource: false
+  resource:
+    serviceName: aws-workload-identity-operator
+    serviceNamespace: appthrust
+    serviceVersion: ""
+    deploymentEnvironmentName: ""
+    attributes: {}
+  otlp:
+    endpoint: ""
+    logsEndpoint: ""
+    protocol: http/protobuf
+    logsProtocol: ""
+    insecure: false
+    logsInsecure: false
+    headers: {}
+    logsHeaders: {}
+
+clusterInventory:
+  accessProviders: []
+  plugins:
+    - name: open-cluster-management
+      # Do not pin cp-creds by SHA yet; upstream digests change frequently while it stabilizes.
+      image: quay.io/open-cluster-management/cp-creds:latest
+      mountPath: /plugins
+      pullPolicy: IfNotPresent
+
+ocm:
+  managedServiceAccount:
+    name: aws-workload-identity-operator
+    create: false
+    namespaces: []
+    # Must match ManagedClusterAddOn/managed-serviceaccount status.namespace.
+    # The managed-serviceaccount Helm chart uses this namespace for its default
+    # Deployment-mode targetCluster template, while generic OCM add-ons and
+    # AddOnTemplate mode default to open-cluster-management-agent-addon.
+    addonInstallNamespace: open-cluster-management-managed-serviceaccount
+    labels: {}
+    annotations: {}
+    rotation:
+      enabled: true
+    remotePermissions:
+      name: ""
+      webhookNamespace: ""
+
+serviceAccount:
+  create: true
+  name: ""
+  annotations: {}
+  labels: {}
+
+rbac:
+  annotations: {}
+  extraRules: []
+
+metrics:
+  # The /metrics endpoint is protected by Kubernetes TokenReview/SubjectAccessReview.
+  # Anonymous scraping is rejected. Scrapers must present a bearer token whose
+  # ServiceAccount is granted the cluster-scoped right `nonResourceURLs: ["/metrics"], verbs: ["get"]`.
+  # The kube-prometheus-stack default Prometheus ServiceAccount satisfies this when
+  # bound to a metrics-reader ClusterRole (typically deployed by that stack).
+  containerPort: 8080
+  service:
+    enabled: false
+    type: ClusterIP
+    port: 8080
+    annotations: {}
+
+# When enabled, the scraping Prometheus must be configured to send a bearer token
+# (e.g. its own ServiceAccount token via `bearerTokenFile` on the Prometheus CRD)
+# because the operator's metrics endpoint rejects anonymous requests.
+serviceMonitor:
+  enabled: false
+  namespace: ""
+  labels: {}
+  annotations: {}
+  interval: 30s
+  scrapeTimeout: 10s
+  path: /metrics
+  scheme: http
+  honorLabels: false
+  relabelings: []
+  metricRelabelings: []
+  namespaceSelector: {}
+
+containerPorts:
+  webhook: 9443
+  health: 8081
+
+livenessProbe:
+  initialDelaySeconds: 15
+  periodSeconds: 20
+  timeoutSeconds: 1
+  failureThreshold: 3
+  successThreshold: 1
+
+readinessProbe:
+  initialDelaySeconds: 5
+  periodSeconds: 10
+  timeoutSeconds: 10
+  failureThreshold: 3
+  successThreshold: 1
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 128Mi
+  limits:
+    memory: 256Mi
+
+podSecurityContext:
+  enabled: true
+  fsGroup: 65532
+  runAsNonRoot: true
+  seccompProfile:
+    type: RuntimeDefault
+
+containerSecurityContext:
+  enabled: true
+  allowPrivilegeEscalation: false
+  capabilities:
+    drop:
+      - ALL
+  readOnlyRootFilesystem: true
+  runAsGroup: 65532
+  runAsNonRoot: true
+  runAsUser: 65532
+
+podLabels: {}
+podAnnotations: {}
+podAutomountServiceAccountToken: true
+deploymentAnnotations: {}
+priorityClassName: ""
+schedulerName: ""
+# Must exceed controller-runtime's GracefulShutdownTimeout (30s default,
+# pkg/manager/manager.go) plus the OTEL logger shutdown window
+# (10s, cmd/manager/main.go shutdownLogging) so in-flight reconciles and
+# finalizer cleanup can drain before SIGKILL.
+terminationGracePeriodSeconds: 60
+
+nodeSelector: {}
+tolerations: []
+affinity: {}
+topologySpreadConstraints: []
+
+extraEnvVars: []
+extraEnvVarsCM: ""
+extraEnvVarsSecret: ""
+extraVolumeMounts: []
+extraVolumes: []
+initContainers: []
+sidecars: []
+
+operatorConfig:
+  create: false
+  name: default
+  annotations: {}
+  labels: {}
+  spec: {}

@@ -1,0 +1,52 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": [
+    "config:recommended",
+    "helpers:pinGitHubActionDigests"
+  ],
+  "dependencyDashboard": true,
+  "labels": [
+    "dependencies"
+  ],
+  "rangeStrategy": "bump",
+  "packageRules": [
+    {
+      "matchManagers": [
+        "github-actions"
+      ],
+      "groupName": "github-actions"
+    },
+    {
+      "matchDatasources": [
+        "docker"
+      ],
+      "groupName": "container images"
+    },
+    {
+      "matchManagers": [
+        "gomod"
+      ],
+      "groupName": "go modules"
+    },
+    {
+      "matchManagers": [
+        "npm"
+      ],
+      "groupName": "node dependencies"
+    }
+  ],
+  "customManagers": [
+    {
+      "customType": "regex",
+      "description": "Update Docker image references embedded in Helm values.",
+      "fileMatch": [
+        "/^charts/aws-workload-identity-operator/values(?:\\.test)?\\.yaml$/"
+      ],
+      "matchStrings": [
+        "(?:image|podIdentityWebhookImage):\\s+(?<depName>[a-zA-Z0-9][a-zA-Z0-9._/-]+):(?<currentValue>[^\\s\"']+)"
+      ],
+      "datasourceTemplate": "docker",
+      "versioningTemplate": "docker"
+    }
+  ]
+}
