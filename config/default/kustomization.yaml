@@ -1,0 +1,9 @@
+namespace: aws-workload-identity-operator-system
+namePrefix: aws-workload-identity-operator-
+resources:
+- namespace.yaml
+- ../crd
+- ../rbac
+- ../manager
+- ../webhook
+- ../certmanager
