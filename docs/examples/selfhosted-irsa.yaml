@@ -1,0 +1,33 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: wlc-a
+---
+apiVersion: aws.identity.appthrust.io/v1alpha1
+kind: AWSWorkloadIdentityOperatorConfig
+metadata:
+  name: default
+spec:
+  selfHostedIRSA:
+    webhookNamespace: aws-pod-identity-webhook
+---
+apiVersion: aws.identity.appthrust.io/v1alpha1
+kind: AWSWorkloadIdentityConfig
+metadata:
+  name: default
+  namespace: wlc-a
+spec:
+  type: SelfHostedIRSA
+  region: ap-northeast-1
+---
+apiVersion: aws.identity.appthrust.io/v1alpha1
+kind: AWSServiceAccountRole
+metadata:
+  name: aws-load-balancer-controller
+  namespace: wlc-a
+spec:
+  serviceAccount:
+    namespace: kube-system
+    name: aws-load-balancer-controller
+  policyARNs:
+    - arn:aws:iam::aws:policy/ElasticLoadBalancingFullAccess

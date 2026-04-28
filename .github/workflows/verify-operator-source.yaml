@@ -1,0 +1,44 @@
+name: Verify operator source
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    name: Test, lint, and verify generated manifests
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout operator
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+
+      - name: Set up Go
+        uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c # v6
+        with:
+          go-version-file: go.mod
+
+      - name: Run Go tests
+        run: make test
+
+      - name: Lint public docs
+        run: make docs-lint
+
+      - name: Verify versioned snippets
+        run: make verify-version-sync
+
+      - name: Verify static guardrails
+        run: make verify-static
+
+      - name: Verify generated manifests
+        run: make verify-generated
+
+      - name: Run golangci-lint
+        run: make lint

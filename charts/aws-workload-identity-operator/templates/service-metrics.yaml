@@ -1,0 +1,22 @@
+{{- if .Values.metrics.service.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "awio.fullname" . }}-metrics
+  namespace: {{ include "awio.namespace" . }}
+  labels:
+    {{- include "awio.labels" . | nindent 4 }}
+  {{- with merge .Values.metrics.service.annotations .Values.commonAnnotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  type: {{ .Values.metrics.service.type }}
+  ports:
+    - name: metrics
+      port: {{ .Values.metrics.service.port }}
+      targetPort: metrics
+      protocol: TCP
+  selector:
+    {{- include "awio.selectorLabels" . | nindent 4 }}
+{{- end }}

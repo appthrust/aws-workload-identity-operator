@@ -1,0 +1,5 @@
+resources:
+- bases/aws.identity.appthrust.io_awsworkloadidentityconfigs.yaml
+- bases/aws.identity.appthrust.io_awsserviceaccountroles.yaml
+- bases/aws.identity.appthrust.io_awsserviceaccountrolereplicasets.yaml
+- bases/aws.identity.appthrust.io_awsworkloadidentityoperatorconfigs.yaml
