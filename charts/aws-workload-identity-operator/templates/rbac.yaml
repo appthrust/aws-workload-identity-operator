@@ -1,0 +1,183 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: {{ include "awio.fullname" . }}
+  labels:
+    {{- include "awio.labels" . | nindent 4 }}
+  {{- with merge .Values.rbac.annotations .Values.commonAnnotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+rules:
+  - apiGroups:
+      - aws.identity.appthrust.io
+    resources:
+      - awsworkloadidentityconfigs
+      - awsserviceaccountroles
+      - awsserviceaccountrolereplicasets
+    verbs:
+      - get
+      - list
+      - watch
+      - update
+      - patch
+  - apiGroups:
+      - aws.identity.appthrust.io
+    resources:
+      - awsserviceaccountroles
+    verbs:
+      - create
+      - delete
+  - apiGroups:
+      - aws.identity.appthrust.io
+    resources:
+      - awsworkloadidentityconfigs/status
+      - awsserviceaccountroles/status
+      - awsserviceaccountrolereplicasets/status
+    verbs:
+      - get
+      - update
+      - patch
+  - apiGroups:
+      - aws.identity.appthrust.io
+    resources:
+      - awsworkloadidentityconfigs/finalizers
+      - awsserviceaccountroles/finalizers
+      - awsserviceaccountrolereplicasets/finalizers
+    verbs:
+      - update
+  - apiGroups:
+      - aws.identity.appthrust.io
+    resources:
+      - awsworkloadidentityoperatorconfigs
+    verbs:
+      - get
+      - list
+      - watch
+  - apiGroups:
+      - multicluster.x-k8s.io
+    resources:
+      - clusterprofiles
+    verbs:
+      - get
+      - list
+      - watch
+  - apiGroups:
+      - cluster.open-cluster-management.io
+    resources:
+      - placements
+      - placementdecisions
+    verbs:
+      - get
+      - list
+      - watch
+  - apiGroups:
+      - iam.services.k8s.aws
+    resources:
+      - roles
+      - policies
+      - openidconnectproviders
+    verbs:
+      - get
+      - list
+      - watch
+      - create
+      - update
+      - patch
+      - delete
+  - apiGroups:
+      - s3.services.k8s.aws
+    resources:
+      - buckets
+    verbs:
+      - get
+      - list
+      - watch
+      - create
+      - update
+      - patch
+      - delete
+  - apiGroups:
+      - eks.services.k8s.aws
+    resources:
+      - podidentityassociations
+    verbs:
+      - get
+      - list
+      - watch
+      - create
+      - update
+      - patch
+      - delete
+  - apiGroups:
+      - ""
+    resources:
+      - secrets
+    verbs:
+      - get
+      - list
+      - watch
+      - create
+      - update
+      - patch
+      - delete
+  - apiGroups:
+      - ""
+    resources:
+      - namespaces
+    verbs:
+      - get
+      - list
+      - watch
+  - apiGroups:
+      - ""
+    resources:
+      - events
+    verbs:
+      - create
+      - patch
+  - apiGroups:
+      - coordination.k8s.io
+    resources:
+      - leases
+    verbs:
+      - get
+      - list
+      - watch
+      - create
+      - update
+      - patch
+  - apiGroups:
+      - authentication.k8s.io
+    resources:
+      - tokenreviews
+    verbs:
+      - create
+  - apiGroups:
+      - authorization.k8s.io
+    resources:
+      - subjectaccessreviews
+    verbs:
+      - create
+  {{- with .Values.rbac.extraRules }}
+  {{- toYaml . | nindent 2 }}
+  {{- end }}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: {{ include "awio.fullname" . }}
+  labels:
+    {{- include "awio.labels" . | nindent 4 }}
+  {{- with merge .Values.rbac.annotations .Values.commonAnnotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: {{ include "awio.fullname" . }}
+subjects:
+  - kind: ServiceAccount
+    name: {{ include "awio.serviceAccountName" . }}
+    namespace: {{ include "awio.namespace" . }}

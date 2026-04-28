@@ -1,0 +1,58 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: controller-manager
+  namespace: system
+  labels:
+    app.kubernetes.io/name: aws-workload-identity-operator
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: aws-workload-identity-operator
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: aws-workload-identity-operator
+    spec:
+      serviceAccountName: controller-manager
+      containers:
+      - name: manager
+        image: controller:latest
+        ports:
+        - name: webhook-server
+          containerPort: 9443
+          protocol: TCP
+        args:
+        - --leader-elect
+        - --clusterprofile-provider-file=/etc/cluster-inventory/config.json
+        volumeMounts:
+        - name: clusterprofile-provider-file
+          mountPath: /etc/cluster-inventory
+          readOnly: true
+        - name: open-cluster-management
+          mountPath: /plugins
+          readOnly: true
+        - name: secretreader
+          mountPath: /plugins/secretreader
+          readOnly: true
+        - name: kubeconfig-secretreader
+          mountPath: /plugins/kubeconfig-secretreader
+          readOnly: true
+      volumes:
+      - name: clusterprofile-provider-file
+        configMap:
+          name: clusterprofile-provider-file
+      - name: open-cluster-management
+        image:
+          # Do not pin cp-creds by SHA yet; upstream digests change frequently while it stabilizes.
+          reference: quay.io/open-cluster-management/cp-creds:latest
+          pullPolicy: IfNotPresent
+      - name: secretreader
+        image:
+          reference: ghcr.io/kubernetes-sigs/cluster-inventory-api/secretreader:0.1.0
+          pullPolicy: IfNotPresent
+      - name: kubeconfig-secretreader
+        image:
+          reference: ghcr.io/kubernetes-sigs/cluster-inventory-api/kubeconfig-secretreader:0.1.0
+          pullPolicy: IfNotPresent
