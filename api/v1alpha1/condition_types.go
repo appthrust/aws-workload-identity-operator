@@ -1,0 +1,207 @@
+package v1alpha1
+
+// API constants for object names, labels, annotations, and finalizers.
+const (
+	DefaultName = "default"
+
+	ConfigFinalizer                       = "aws.identity.appthrust.io/config-finalizer"
+	ServiceAccountRoleFinalizer           = "aws.identity.appthrust.io/service-account-role-finalizer"
+	ServiceAccountRoleReplicaSetFinalizer = "aws.identity.appthrust.io/service-account-role-replicaset-finalizer"
+
+	LabelManagedBy      = "app.kubernetes.io/managed-by"
+	LabelConfigUID      = "aws.identity.appthrust.io/config-uid"
+	LabelBindingUID     = "aws.identity.appthrust.io/binding-uid"
+	LabelInventoryNS    = "aws.identity.appthrust.io/inventory-namespace"
+	LabelOwnerRef       = "aws.identity.appthrust.io/owner-ref"
+	LabelServiceAccount = "aws.identity.appthrust.io/service-account"
+	LabelDelivery       = "aws.identity.appthrust.io/delivery"
+	LabelRuntime        = "aws.identity.appthrust.io/runtime"
+	LabelReplicaSetUID  = "aws.identity.appthrust.io/replicaset-uid"
+
+	AnnotationSigningKeyID       = "aws.identity.appthrust.io/signing-key-id"
+	AnnotationReplicaSetOwnerRef = "aws.identity.appthrust.io/replicaset-owner-ref"
+
+	ManagedByValue = "aws-workload-identity-operator"
+	RuntimeWebhook = "self-hosted-webhook"
+
+	ForceDeleteAnnotation = "aws.identity.appthrust.io/force-delete"
+)
+
+// DeliveryType selects the workload identity delivery strategy.
+type DeliveryType string
+
+// Delivery type constants supported by AWSWorkloadIdentityConfig.
+const (
+	DeliveryTypeSelfHostedIRSA DeliveryType = "SelfHostedIRSA"
+	DeliveryTypeEKSPodIdentity DeliveryType = "EKSPodIdentity"
+	DeliveryTypeEKSIRSA        DeliveryType = "EKSIRSA"
+)
+
+// UsesAnnotationBasedIRSA reports whether the delivery type relies on the
+// aws-pod-identity-webhook annotation flow (SelfHostedIRSA and EKSIRSA).
+func (d DeliveryType) UsesAnnotationBasedIRSA() bool {
+	switch d {
+	case DeliveryTypeSelfHostedIRSA, DeliveryTypeEKSIRSA:
+		return true
+	case DeliveryTypeEKSPodIdentity:
+		return false
+	default:
+		return false
+	}
+}
+
+// OIDCProviderManagement selects whether the operator owns the IAM OIDC provider.
+type OIDCProviderManagement string
+
+// OIDC provider management modes for EKSIRSA.
+const (
+	OIDCProviderManagementManaged  OIDCProviderManagement = "Managed"
+	OIDCProviderManagementExternal OIDCProviderManagement = "External"
+)
+
+// Condition types reported by the controllers.
+const (
+	ConditionOperatorConfigReady           = "OperatorConfigReady"
+	ConditionClusterProfileResolved        = "ClusterProfileResolved"
+	ConditionInventoryResolved             = "InventoryResolved"
+	ConditionBucketReady                   = "BucketReady"
+	ConditionOIDCObjectsPublished          = "OIDCObjectsPublished"
+	ConditionIAMProviderReady              = "IAMProviderReady"
+	ConditionIssuerReady                   = "IssuerReady"
+	ConditionConfigResolved                = "ConfigResolved"
+	ConditionPolicyReady                   = "PolicyReady"
+	ConditionRoleReady                     = "RoleReady"
+	ConditionTrustPolicyReady              = "TrustPolicyReady"
+	ConditionServiceAccountAnnotationReady = "ServiceAccountAnnotationReady"
+	ConditionWebhookRuntimeReady           = "WebhookRuntimeReady"
+	ConditionPodIdentityAssocReady         = "PodIdentityAssociationReady"
+	ConditionPodIdentityAgentReady         = "PodIdentityAgentReady"
+	ConditionDeliveryReady                 = "DeliveryReady"
+	ConditionReady                         = "Ready"
+	ConditionDeletionBlocked               = "DeletionBlocked"
+	ConditionPlacementResolved             = "PlacementResolved"
+	ConditionPlacementRolledOut            = "PlacementRolledOut"
+	ConditionProgressing                   = "Progressing"
+	ConditionAWSServiceAccountRolesApplied = "AWSServiceAccountRolesApplied"
+	ConditionAWSServiceAccountRolesReady   = "AWSServiceAccountRolesReady"
+	ConditionCleanupBlocked                = "CleanupBlocked"
+)
+
+// Reason* values are stable condition reasons emitted by the controllers and
+// event reasons surfaced via the EventRecorder. AllReasons() is the single
+// source of truth used by the metrics allowlist so a typo cannot silently
+// coerce a metric label to "other".
+const (
+	ReasonReady                     = "Ready"
+	ReasonAnnotationRepaired        = "AnnotationRepaired"
+	ReasonReconciled                = "Reconciled"
+	ReasonResolved                  = "Resolved"
+	ReasonRendered                  = "Rendered"
+	ReasonNotRequired               = "NotRequired"
+	ReasonHubResourcesReady         = "HubResourcesReady"
+	ReasonEKSAutoMode               = "EKSAutoMode"
+	ReasonManagedPoliciesOnly       = "ManagedPoliciesOnly"
+	ReasonInvalidSpec               = "InvalidSpec"
+	ReasonOperatorConfigUnavailable = "OperatorConfigUnavailable"
+	ReasonConfigNotReady            = "ConfigNotReady"
+	ReasonConfigUnavailable         = "ConfigUnavailable"
+	ReasonResolverError             = "ResolverError"
+	ReasonClusterProfileNotFound    = "ClusterProfileNotFound"
+	ReasonTrustPolicyInputMissing   = "TrustPolicyInputMissing"
+	ReasonRolesRemain               = "RolesRemain"
+	ReasonACKResourceSynced         = "ACKResourceSynced"
+	ReasonACKResourceNotSynced      = "ACKResourceNotSynced"
+	ReasonWaitingForACK             = "WaitingForACK"
+	ReasonRemoteCheckPending        = "RemoteCheckPending"
+	ReasonRemoteDeliveryPending     = "RemoteDeliveryPending"
+	ReasonDeletionBlocked           = "DeletionBlocked"
+	ReasonInventoryUnavailable      = "InventoryUnavailable"
+	ReasonACKResourceWaiting        = "ACKResourceWaiting"
+	ReasonIssuerReconcileFailed     = "IssuerReconcileFailed"
+	ReasonOIDCObjectsPublished      = "OIDCObjectsPublished"
+	ReasonOIDCObjectsPublishFailed  = "OIDCObjectsPublishFailed"
+	ReasonRemoteClusterUnavailable  = "RemoteClusterUnavailable"
+	ReasonRemoteRuntimeUnmanaged    = "RemoteRuntimeUnmanaged"
+	ReasonWebhookRuntimeApplyFailed = "WebhookRuntimeApplyFailed"
+	ReasonWebhookRuntimeSynced      = "WebhookRuntimeSynced"
+	ReasonWebhookRuntimeUnavailable = "WebhookRuntimeUnavailable"
+	// ReasonWaitingForWebhookDeployment is now narrowed to the residual
+	// "Available condition is False or missing" path; specific rollout stages
+	// surface dedicated Reasons below.
+	ReasonWaitingForWebhookDeployment            = "WaitingForWebhookDeployment"
+	ReasonWebhookDeploymentObservedGenerationLag = "WebhookDeploymentObservedGenerationLag"
+	ReasonWebhookDeploymentRolloutInProgress     = "WebhookDeploymentRolloutInProgress"
+	ReasonWebhookDeploymentReplicasUnavailable   = "WebhookDeploymentReplicasUnavailable"
+	ReasonPlacementUnavailable                   = "PlacementUnavailable"
+	ReasonChildApplyFailed                       = "ChildApplyFailed"
+	ReasonChildConflict                          = "ChildConflict"
+	ReasonChildOwnershipMismatch                 = "ChildOwnershipMismatch"
+	ReasonChildrenApplied                        = "ChildrenApplied"
+	ReasonChildrenPending                        = "ChildrenPending"
+	ReasonChildrenReady                          = "ChildrenReady"
+	ReasonClusterNamespaceMissing                = "ClusterNamespaceMissing"
+	ReasonImmutableChildDrift                    = "ImmutableChildDrift"
+	ReasonDeletionUnblocked                      = "DeletionUnblocked"
+	ReasonProgressing                            = "Progressing"
+	ReasonComplete                               = "Complete"
+	ReasonRolloutTimedOut                        = "RolloutTimedOut"
+	ReasonRolloutPending                         = "RolloutPending"
+)
+
+// AllReasons returns every Reason* value above. Used by the metrics package to
+// build a label allowlist without re-listing constants and risking drift.
+func AllReasons() []string {
+	return []string{
+		ReasonReady,
+		ReasonAnnotationRepaired,
+		ReasonReconciled,
+		ReasonResolved,
+		ReasonRendered,
+		ReasonNotRequired,
+		ReasonHubResourcesReady,
+		ReasonEKSAutoMode,
+		ReasonManagedPoliciesOnly,
+		ReasonInvalidSpec,
+		ReasonOperatorConfigUnavailable,
+		ReasonConfigNotReady,
+		ReasonConfigUnavailable,
+		ReasonResolverError,
+		ReasonClusterProfileNotFound,
+		ReasonTrustPolicyInputMissing,
+		ReasonRolesRemain,
+		ReasonACKResourceSynced,
+		ReasonACKResourceNotSynced,
+		ReasonWaitingForACK,
+		ReasonRemoteCheckPending,
+		ReasonRemoteDeliveryPending,
+		ReasonDeletionBlocked,
+		ReasonInventoryUnavailable,
+		ReasonACKResourceWaiting,
+		ReasonIssuerReconcileFailed,
+		ReasonOIDCObjectsPublished,
+		ReasonOIDCObjectsPublishFailed,
+		ReasonRemoteClusterUnavailable,
+		ReasonRemoteRuntimeUnmanaged,
+		ReasonWebhookRuntimeApplyFailed,
+		ReasonWebhookRuntimeSynced,
+		ReasonWebhookRuntimeUnavailable,
+		ReasonWaitingForWebhookDeployment,
+		ReasonWebhookDeploymentObservedGenerationLag,
+		ReasonWebhookDeploymentRolloutInProgress,
+		ReasonWebhookDeploymentReplicasUnavailable,
+		ReasonPlacementUnavailable,
+		ReasonChildApplyFailed,
+		ReasonChildConflict,
+		ReasonChildOwnershipMismatch,
+		ReasonChildrenApplied,
+		ReasonChildrenPending,
+		ReasonChildrenReady,
+		ReasonClusterNamespaceMissing,
+		ReasonImmutableChildDrift,
+		ReasonDeletionUnblocked,
+		ReasonProgressing,
+		ReasonComplete,
+		ReasonRolloutTimedOut,
+		ReasonRolloutPending,
+	}
+}
