@@ -1,0 +1,22 @@
+apiVersion: aws.identity.appthrust.io/v1alpha1
+kind: AWSWorkloadIdentityConfig
+metadata:
+  name: default
+  namespace: wlc-a
+spec:
+  type: SelfHostedIRSA
+  region: ap-northeast-1
+---
+apiVersion: aws.identity.appthrust.io/v1alpha1
+kind: AWSWorkloadIdentityConfig
+metadata:
+  name: default
+  namespace: eks-prod
+spec:
+  type: EKSIRSA
+  region: ap-northeast-1
+  eksIRSA:
+    issuerURL: https://oidc.eks.ap-northeast-1.amazonaws.com/id/EXAMPLE
+    oidcProvider:
+      management: External
+      arn: arn:aws:iam::123456789012:oidc-provider/oidc.eks.ap-northeast-1.amazonaws.com/id/EXAMPLE
