@@ -175,13 +175,13 @@ generated bucket.
 
 ## Install
 
-Install the released Helm chart from GHCR's OCI registry. Replace `0.2.0`
+Install the released Helm chart from GHCR's OCI registry. Replace `0.1.0`
 with the release version you want to run:
 
 ```sh
 helm upgrade --install aws-workload-identity-operator \
   oci://ghcr.io/appthrust/helm-charts/aws-workload-identity-operator \
-  --version 0.2.0 \
+  --version 0.1.0 \
   --namespace aws-workload-identity-operator-system \
   --create-namespace
 ```

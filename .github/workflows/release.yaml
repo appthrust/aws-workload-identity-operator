@@ -219,7 +219,7 @@ jobs:
         shell: bash
         run: |
           chart_repository="${REGISTRY}/${{ steps.chart.outputs.owner }}/helm-charts/${IMAGE_NAME}"
-          push_output="$(helm push "${IMAGE_NAME}-${{ steps.chart.outputs.version }}.tgz" "oci://${REGISTRY}/${{ steps.chart.outputs.owner }}/helm-charts")"
+          push_output="$(helm push "${IMAGE_NAME}-${{ steps.chart.outputs.version }}.tgz" "oci://${REGISTRY}/${{ steps.chart.outputs.owner }}/helm-charts" 2>&1)"
           printf '%s\n' "${push_output}"
           digest="$(awk '/^Digest:/ {print $2}' <<<"${push_output}" | tail -n1)"
           if [[ -z "${digest}" ]]; then
