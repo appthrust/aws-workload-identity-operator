@@ -8,7 +8,7 @@ configuration, and Cluster Inventory access-provider configuration.
 ```sh
 helm upgrade --install aws-workload-identity-operator \
   oci://ghcr.io/appthrust/helm-charts/aws-workload-identity-operator \
-  --version 0.2.0 \
+  --version 0.2.1 \
   --namespace aws-workload-identity-operator-system \
   --create-namespace
 ```
@@ -112,7 +112,7 @@ finalizers no longer need the old credential.
 image:
   registry: ghcr.io
   repository: appthrust/aws-workload-identity-operator
-  tag: "0.2.0"
+  tag: "0.2.1"
   digest: ""
 ```
 
