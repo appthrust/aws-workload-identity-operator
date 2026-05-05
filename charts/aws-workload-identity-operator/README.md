@@ -111,7 +111,7 @@ For live clusters, follow the sequencing in
 image:
   registry: ghcr.io
   repository: appthrust/aws-workload-identity-operator
-  tag: "<image-tag>"
+  tag: "0.1.1"
   digest: ""
 ```
 
