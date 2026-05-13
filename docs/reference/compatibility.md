@@ -1,7 +1,7 @@
 # Compatibility And Prerequisites
 
-`v0.1.0` is the first public release line. The chart version is `0.1.0`, and
-the release tag is `v0.1.0`.
+`v0.1.1` is the first public release line. The chart version is `0.1.1`, and
+the release tag is `v0.1.1`.
 
 ## Platform Matrix
 
@@ -34,9 +34,9 @@ Optional `EKSPodIdentity` facts:
 
 ## Versioned Artifacts
 
-| Artifact | `v0.1.0` reference |
+| Artifact | `v0.1.1` reference |
 | --- | --- |
-| Helm chart | `oci://ghcr.io/appthrust/helm-charts/aws-workload-identity-operator --version 0.1.0` |
-| Operator image tag default | `ghcr.io/appthrust/aws-workload-identity-operator:0.1.0` |
-| Remote IRSA tools examples | `ghcr.io/appthrust/aws-workload-identity-operator/remote-irsa-tools:v0.1.0` |
-| AWS IRSA sidecar examples | `ghcr.io/appthrust/aws-workload-identity-operator/aws-irsa-sidecar:v0.1.0` |
+| Helm chart | `oci://ghcr.io/appthrust/helm-charts/aws-workload-identity-operator --version 0.1.1` |
+| Operator image tag default | `ghcr.io/appthrust/aws-workload-identity-operator:0.1.1` |
+| Remote IRSA tools examples | `ghcr.io/appthrust/aws-workload-identity-operator/remote-irsa-tools:v0.1.1` |
+| AWS IRSA sidecar examples | `ghcr.io/appthrust/aws-workload-identity-operator/aws-irsa-sidecar:v0.1.1` |
