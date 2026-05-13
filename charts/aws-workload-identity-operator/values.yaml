@@ -14,7 +14,7 @@ image:
   repository: appthrust/aws-workload-identity-operator
   # Empty tag falls back to .Chart.AppVersion (see _helpers.tpl: awio.image),
   # making Chart.yaml the single source of version truth across releases.
-  tag: "0.1.1"
+  tag: "0.1.0"
   digest: ""
   pullPolicy: IfNotPresent
   pullSecrets: []

@@ -176,7 +176,7 @@ spec:
             secretName: {{ .ManagedKubeConfigSecret }}
       initContainers:
         - name: aws-irsa-sidecar
-          image: ghcr.io/appthrust/aws-workload-identity-operator/aws-irsa-sidecar:v0.1.1
+          image: ghcr.io/appthrust/aws-workload-identity-operator/aws-irsa-sidecar:v0.1.0
           restartPolicy: Always
           args:
             - --kubeconfig=/managed/config/kubeconfig
@@ -259,7 +259,7 @@ spec:
       volumes:
         - name: remote-irsa-tools
           image:
-            reference: ghcr.io/appthrust/aws-workload-identity-operator/remote-irsa-tools:v0.1.1
+            reference: ghcr.io/appthrust/aws-workload-identity-operator/remote-irsa-tools:v0.1.0
         - name: ocm-cp-creds
           image:
             reference: quay.io/open-cluster-management/cp-creds:latest
