@@ -62,7 +62,7 @@ New API structs:
 - `EKSIRSAOIDCProviderConfig.Management OIDCProviderManagement`
 - `EKSIRSAOIDCProviderConfig.ARN string`
 
-`EKSIRSA` must be a pointer field so `spec.eksIRSA` can be truly absent when the delivery type is not `EKSIRSA`.
+`EKSIRSA` must be a pointer field so `spec.eksIRSA` can be truly absent when the delivery type is not `EKSIRSA`. Non-`EKSIRSA` configs must omit the field entirely; an empty object such as `eksIRSA: {}` is invalid.
 
 New enum values:
 
@@ -84,7 +84,15 @@ Use CRD validation and CEL to enforce the ownership contract:
 - `management == "External"` requires `arn`.
 - External provider `arn` must match IAM OIDC provider ARN shape.
 
-Use CEL for the `type`/`eksIRSA` presence and `management`/`arn` ownership rules. The controller should also treat invalid normalized issuer input as `Ready=False` with reason `InvalidSpec`, so status remains useful if an older CRD allowed bad input. For `External`, the controller must verify that the OIDC provider ARN path matches the normalized issuer host/path before using it in trust policies.
+Use CEL for the `type`/`eksIRSA` presence and `management`/`arn` ownership rules. The presence rule should be a strict equivalence:
+
+```text
+has(self.eksIRSA) == (self.type == "EKSIRSA")
+```
+
+This makes `spec.eksIRSA` mandatory for `EKSIRSA` and rejected for `SelfHostedIRSA` or `EKSPodIdentity`, including the case where a non-`EKSIRSA` object supplies `eksIRSA: {}`.
+
+The controller should also treat invalid normalized issuer input as `Ready=False` with reason `InvalidSpec`, so status remains useful if an older CRD allowed bad input. For `External`, the controller must verify that the OIDC provider ARN path matches the normalized issuer host/path before using it in trust policies.
 
 ## Config Controller
 
