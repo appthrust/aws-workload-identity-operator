@@ -551,5 +551,16 @@ clusterInventory:
       pullPolicy: IfNotPresent
 `),
     ).toMatch(/clusterInventory[./]plugins[./]0[./]name/);
+
+    expect(
+      helmTemplateFailure(`
+operatorConfig:
+  create: true
+  name: custom-config
+  spec:
+    selfHostedIRSA:
+      webhookNamespace: aws-pod-identity-webhook
+`),
+    ).toMatch(/operatorConfig[./]name/);
   });
 });

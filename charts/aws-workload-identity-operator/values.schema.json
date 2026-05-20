@@ -827,6 +827,9 @@
           },
           "then": {
             "properties": {
+              "name": {
+                "const": "default"
+              },
               "spec": {
                 "minProperties": 1
               }
