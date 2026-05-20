@@ -119,7 +119,7 @@ Status fields:
 | `status.readyClusterCount` | Children reporting `Ready=True`. |
 | `status.staleClusterCount` | Previously applied clusters no longer in the desired set. |
 | `status.conflictCount` | Desired children blocked by foreign same-name objects or ownership mismatch. |
-| `status.failureCount` | Failed, conflicted, or timed-out cluster entries. |
+| `status.failureCount` | Failed or timed-out cluster entries. Conflicts are tracked separately by `status.conflictCount`. |
 | `status.placements` | Per-Placement selected count, available OCM decision groups, rollout summary, and conditions. |
 | `status.rollout` | Aggregate OCM rollout summary. See [ReplicaSet Rollout Status](#replicaset-rollout-status). |
 | `status.failedClusters` | Bounded list of failed cluster fan-out paths. |
