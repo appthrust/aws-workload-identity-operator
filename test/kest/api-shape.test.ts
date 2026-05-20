@@ -417,7 +417,6 @@ describe("manifest shape", () => {
       "ClusterIP",
       "NodePort",
       "LoadBalancer",
-      "ExternalName",
     ]);
     expect(webhook).toContain("cert-manager.io/v1");
     expect(webhook).toContain("cert-manager.io/inject-ca-from");
@@ -574,6 +573,17 @@ operatorConfig:
 metrics:
   service:
     type: Headless
+`),
+    ).toMatch(/metrics[./]service[./]type/);
+
+    // The metrics Service template does not render spec.externalName, so the chart
+    // cannot produce a valid ExternalName Service. Reject the value at render time
+    // rather than emitting a manifest the API server will refuse on apply.
+    expect(
+      helmTemplateFailure(`
+metrics:
+  service:
+    type: ExternalName
 `),
     ).toMatch(/metrics[./]service[./]type/);
   });
