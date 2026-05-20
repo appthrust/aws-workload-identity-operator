@@ -176,6 +176,12 @@ metrics:
 The metrics Service exposes a port named `metrics` and targets the manager
 container port with the same name.
 
+`metrics.service.type` accepts `ClusterIP` (default), `NodePort`, or
+`LoadBalancer`. `ExternalName` is intentionally rejected by
+`values.schema.json` because the metrics Service template only renders
+`spec.type`, `spec.ports`, and `spec.selector`, never `spec.externalName`; an
+`ExternalName` value would produce a manifest the API server rejects on apply.
+
 Metric semantics are documented in
 [Metrics](../../docs/reference/metrics.md). Version-specific alert migration
 notes belong in [Upgrades](../../docs/operations/upgrades.md).
