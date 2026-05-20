@@ -1,7 +1,7 @@
 # Compatibility And Prerequisites
 
-This documentation targets the upcoming `v0.1.0` release. The chart version
-is `0.1.0` and the planned release tag is `v0.1.0`. No public tag has been
+This documentation targets the upcoming `v0.1.1` release. The chart version
+is `0.1.1` and the planned release tag is `v0.1.1`. No public tag has been
 cut yet, so the OCI artifacts under these coordinates are not yet published.
 
 ## Platform Matrix
@@ -35,9 +35,9 @@ Optional `EKSPodIdentity` facts:
 
 ## Versioned Artifacts
 
-| Artifact | `v0.1.0` reference |
+| Artifact | `v0.1.1` reference |
 | --- | --- |
-| Helm chart | `oci://ghcr.io/appthrust/helm-charts/aws-workload-identity-operator --version 0.1.0` |
-| Operator image tag default | `ghcr.io/appthrust/aws-workload-identity-operator:0.1.0` |
-| Remote IRSA tools examples | `ghcr.io/appthrust/aws-workload-identity-operator/remote-irsa-tools:0.1.0` |
-| AWS IRSA sidecar examples | `ghcr.io/appthrust/aws-workload-identity-operator/aws-irsa-sidecar:0.1.0` |
+| Helm chart | `oci://ghcr.io/appthrust/helm-charts/aws-workload-identity-operator --version 0.1.1` |
+| Operator image tag default | `ghcr.io/appthrust/aws-workload-identity-operator:0.1.1` |
+| Remote IRSA tools examples | `ghcr.io/appthrust/aws-workload-identity-operator/remote-irsa-tools:0.1.1` |
+| AWS IRSA sidecar examples | `ghcr.io/appthrust/aws-workload-identity-operator/aws-irsa-sidecar:0.1.1` |
