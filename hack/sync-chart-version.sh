@@ -68,7 +68,7 @@ render_file() {
       ;;
     "${compatibility_file}")
       AWIO_VERSION="${version}" perl -0pe \
-        's/`v[0-9]+\.[0-9]+\.[0-9]+(?:[-+][A-Za-z0-9._-]+)?` is the current release line/`v$ENV{AWIO_VERSION}` is the current release line/g;
+        's/`v[0-9]+\.[0-9]+\.[0-9]+(?:[-+][A-Za-z0-9._-]+)?`([^`.\n]*release line)/`v$ENV{AWIO_VERSION}`$1/g;
          s/chart version is `[0-9]+\.[0-9]+\.[0-9]+(?:[-+][A-Za-z0-9._-]+)?`/chart version is `$ENV{AWIO_VERSION}`/g;
          s/release tag is `v[0-9]+\.[0-9]+\.[0-9]+(?:[-+][A-Za-z0-9._-]+)?`/release tag is `v$ENV{AWIO_VERSION}`/g;
          s/`v[0-9]+\.[0-9]+\.[0-9]+(?:[-+][A-Za-z0-9._-]+)?` reference/`v$ENV{AWIO_VERSION}` reference/g;
