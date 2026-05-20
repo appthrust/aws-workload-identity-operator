@@ -56,8 +56,11 @@ Out of scope:
 
 ## Supported Versions
 
-The latest minor release line is supported for security fixes; older release
-lines are considered case by case. Fixes for `main` land on `main`.
+`aws-workload-identity-operator` has not yet shipped a public release. Until
+the first tag is cut, security fixes land on `main` and there is no supported
+release line. Once the first public release is published, the latest minor
+release line will be supported for security fixes; older release lines will
+be considered case by case.
 
 ## Coordinated Disclosure
 
