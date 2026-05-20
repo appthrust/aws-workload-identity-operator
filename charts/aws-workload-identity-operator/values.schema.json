@@ -568,7 +568,8 @@
               "type": "boolean"
             },
             "type": {
-              "type": "string"
+              "type": "string",
+              "enum": ["ClusterIP", "NodePort", "LoadBalancer", "ExternalName"]
             },
             "port": {
               "type": "integer",

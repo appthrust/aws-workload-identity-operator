@@ -413,6 +413,12 @@ describe("manifest shape", () => {
     expect(resources.properties.requests.required).toContain("memory");
     expect(resources.properties.limits.required).toEqual(["memory"]);
     expect(schema.properties.operatorConfig.allOf[0].then.properties.spec.minProperties).toBe(1);
+    expect(schema.properties.metrics.properties.service.properties.type.enum).toEqual([
+      "ClusterIP",
+      "NodePort",
+      "LoadBalancer",
+      "ExternalName",
+    ]);
     expect(webhook).toContain("cert-manager.io/v1");
     expect(webhook).toContain("cert-manager.io/inject-ca-from");
     expect(webhook).toContain("rotationPolicy: Always");
@@ -562,5 +568,13 @@ operatorConfig:
       webhookNamespace: aws-pod-identity-webhook
 `),
     ).toMatch(/operatorConfig[./]name/);
+
+    expect(
+      helmTemplateFailure(`
+metrics:
+  service:
+    type: Headless
+`),
+    ).toMatch(/metrics[./]service[./]type/);
   });
 });
