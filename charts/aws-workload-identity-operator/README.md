@@ -16,7 +16,7 @@ Install the chart from GHCR's OCI registry:
 ```sh
 helm upgrade --install aws-workload-identity-operator \
   oci://ghcr.io/appthrust/helm-charts/aws-workload-identity-operator \
-  --version 0.1.0 \
+  --version 0.1.1 \
   --namespace aws-workload-identity-operator-system \
   --create-namespace
 ```
@@ -125,7 +125,7 @@ See [Hub-Side Remote IRSA Consumers](../../docs/guides/remote-irsa-consumers.md#
 image:
   registry: ghcr.io
   repository: appthrust/aws-workload-identity-operator
-  tag: "0.1.0"
+  tag: "0.1.1"
   digest: ""
 ```
 

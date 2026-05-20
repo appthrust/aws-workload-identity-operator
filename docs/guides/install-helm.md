@@ -5,7 +5,7 @@ Install the chart from GHCR's OCI registry:
 ```sh
 helm upgrade --install aws-workload-identity-operator \
   oci://ghcr.io/appthrust/helm-charts/aws-workload-identity-operator \
-  --version 0.1.0 \
+  --version 0.1.1 \
   --namespace aws-workload-identity-operator-system \
   --create-namespace
 ```
@@ -14,7 +14,7 @@ Use `./charts/aws-workload-identity-operator` when installing local changes from
 a source checkout. When testing an image that is not available from GHCR, use
 the [local image override](#local-image-override) below.
 
-The release tag is `v0.1.0`; the Helm chart version is `0.1.0`. Future release
+The release tag is `v0.1.1`; the Helm chart version is `0.1.1`. Future release
 pull requests update this command through tagpr version sync.
 
 The chart installs CRDs, RBAC, the manager Deployment, webhook configuration,

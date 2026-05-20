@@ -203,7 +203,7 @@ spec:
             secretName: {{ .ManagedKubeConfigSecret }}
       initContainers:
         - name: aws-irsa-sidecar
-          image: ghcr.io/appthrust/aws-workload-identity-operator/aws-irsa-sidecar:0.1.0
+          image: ghcr.io/appthrust/aws-workload-identity-operator/aws-irsa-sidecar:0.1.1
           restartPolicy: Always
           command:
             - /aws-irsa-sidecar
