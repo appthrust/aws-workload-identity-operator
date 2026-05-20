@@ -14,8 +14,10 @@ Use `./charts/aws-workload-identity-operator` when installing local changes from
 a source checkout. When testing an image that is not available from GHCR, use
 the [local image override](#local-image-override) below.
 
-The release tag is `v0.1.0`; the Helm chart version is `0.1.0`. Future release
-pull requests update this command through tagpr version sync.
+The first public tag has not been cut yet, so the OCI artifact above is not
+yet published; the command becomes installable once the release lands. The
+planned release tag is `v0.1.0`; the Helm chart version is `0.1.0`. Future
+release pull requests update this command through tagpr version sync.
 
 The chart installs CRDs, RBAC, the manager Deployment, webhook configuration,
 cert-manager serving certificate resources, and the Cluster Inventory

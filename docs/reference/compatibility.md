@@ -1,7 +1,8 @@
 # Compatibility And Prerequisites
 
-`v0.1.0` is the current release line. The chart version is `0.1.0`, and
-the release tag is `v0.1.0`.
+This documentation targets the upcoming `v0.1.0` release. The chart version
+is `0.1.0` and the planned release tag is `v0.1.0`. No public tag has been
+cut yet, so the OCI artifacts under these coordinates are not yet published.
 
 ## Platform Matrix
 
