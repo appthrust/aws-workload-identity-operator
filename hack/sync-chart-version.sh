@@ -56,7 +56,11 @@ render_file() {
     "${chart_readme_file}")
       AWIO_VERSION="${version}" perl -0pe \
         's/(--version )\S+([ \t]*\\)/$1$ENV{AWIO_VERSION}$2/g;
-         s/(^image:\n(?:^[ \t]+.*\n)*?^[ \t]+tag: ).*/$1"$ENV{AWIO_VERSION}"/m' \
+         s/(^image:\n(?:^[ \t]+.*\n)*?^[ \t]+tag: ).*/$1"$ENV{AWIO_VERSION}"/m;
+         s/`v[0-9]+\.[0-9]+\.[0-9]+(?:[-+][A-Za-z0-9._-]+)?`/`v$ENV{AWIO_VERSION}`/g;
+         s/(Chart\s+version\s+)`[0-9]+\.[0-9]+\.[0-9]+(?:[-+][A-Za-z0-9._-]+)?`/$1`$ENV{AWIO_VERSION}`/g;
+         s/(default\s+)`[0-9]+\.[0-9]+\.[0-9]+(?:[-+][A-Za-z0-9._-]+)?`(\s+tag)/$1`$ENV{AWIO_VERSION}`$2/g;
+         s#`(ghcr\.io/appthrust/aws-workload-identity-operator):[0-9]+\.[0-9]+\.[0-9]+(?:[-+][A-Za-z0-9._-]+)?`#`$1:$ENV{AWIO_VERSION}`#g' \
         "${file}"
       ;;
     "${install_guide_file}")
@@ -68,10 +72,8 @@ render_file() {
       ;;
     "${compatibility_file}")
       AWIO_VERSION="${version}" perl -0pe \
-        's/`v[0-9]+\.[0-9]+\.[0-9]+(?:[-+][A-Za-z0-9._-]+)?`([^`.\n]*release line)/`v$ENV{AWIO_VERSION}`$1/g;
-         s/chart version is `[0-9]+\.[0-9]+\.[0-9]+(?:[-+][A-Za-z0-9._-]+)?`/chart version is `$ENV{AWIO_VERSION}`/g;
-         s/release tag is `v[0-9]+\.[0-9]+\.[0-9]+(?:[-+][A-Za-z0-9._-]+)?`/release tag is `v$ENV{AWIO_VERSION}`/g;
-         s/`v[0-9]+\.[0-9]+\.[0-9]+(?:[-+][A-Za-z0-9._-]+)?` reference/`v$ENV{AWIO_VERSION}` reference/g;
+        's/`v[0-9]+\.[0-9]+\.[0-9]+(?:[-+][A-Za-z0-9._-]+)?`/`v$ENV{AWIO_VERSION}`/g;
+         s/(chart\s+version\s+is\s+)`[0-9]+\.[0-9]+\.[0-9]+(?:[-+][A-Za-z0-9._-]+)?`/$1`$ENV{AWIO_VERSION}`/g;
          s/(--version )[0-9]+\.[0-9]+\.[0-9]+(?:[-+][A-Za-z0-9._-]+)?/$1$ENV{AWIO_VERSION}/g;
          s#(ghcr\.io/appthrust/aws-workload-identity-operator:)[0-9]+\.[0-9]+\.[0-9]+(?:[-+][A-Za-z0-9._-]+)?#$1$ENV{AWIO_VERSION}#g;
          s#(ghcr\.io/appthrust/aws-workload-identity-operator/(?:remote-irsa-tools|aws-irsa-sidecar):)v?[0-9]+\.[0-9]+\.[0-9]+(?:[-+][A-Za-z0-9._-]+)?#$1$ENV{AWIO_VERSION}#g' \
@@ -80,7 +82,8 @@ render_file() {
     "${remote_irsa_consumers_file}"|"${ocm_sidecar_file}")
       AWIO_VERSION="${version}" perl -0pe \
         's#(ghcr\.io/appthrust/aws-workload-identity-operator/(?:remote-irsa-tools|aws-irsa-sidecar):)v?[0-9]+\.[0-9]+\.[0-9]+(?:[-+][A-Za-z0-9._-]+)?#$1$ENV{AWIO_VERSION}#g;
-         s/`(remote-irsa-tools|aws-irsa-sidecar):v?[0-9]+\.[0-9]+\.[0-9]+(?:[-+][A-Za-z0-9._-]+)?`/`$1:$ENV{AWIO_VERSION}`/g' \
+         s/`(remote-irsa-tools|aws-irsa-sidecar):v?[0-9]+\.[0-9]+\.[0-9]+(?:[-+][A-Za-z0-9._-]+)?`/`$1:$ENV{AWIO_VERSION}`/g;
+         s/`v[0-9]+\.[0-9]+\.[0-9]+(?:[-+][A-Za-z0-9._-]+)?`/`v$ENV{AWIO_VERSION}`/g' \
         "${file}"
       ;;
     *)
