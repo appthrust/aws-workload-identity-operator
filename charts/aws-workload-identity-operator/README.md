@@ -317,6 +317,12 @@ operatorConfig:
       webhookNamespace: aws-pod-identity-webhook
 ```
 
+The `AWSWorkloadIdentityOperatorConfig` CRD enforces `metadata.name == "default"`
+through an `XValidation` rule, so when `operatorConfig.create=true`,
+`operatorConfig.name` must be left at its default value `default`.
+`values.schema.json` rejects any other name at chart-render time, before
+`kubectl apply` would otherwise surface the CRD validation error.
+
 `permissionsBoundaryARN` is optional; the operator sets a permissions boundary
 only when the value is configured.
 
