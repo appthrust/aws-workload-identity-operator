@@ -11,7 +11,14 @@ provider ARN.
 
 ## Install
 
-Install the chart from GHCR's OCI registry:
+Chart version `0.1.0` is the targeted first release. The chart OCI artifact at
+`oci://ghcr.io/appthrust/helm-charts/aws-workload-identity-operator` and the
+`ghcr.io/appthrust/aws-workload-identity-operator:0.1.0` image are not
+published until the `v0.1.0` tag is cut; until then, install from
+`./charts/aws-workload-identity-operator` with a locally built image (see
+[Local Image Override](../../docs/guides/install-helm.md#local-image-override)).
+
+After the first tag is cut, install the chart from GHCR's OCI registry:
 
 ```sh
 helm upgrade --install aws-workload-identity-operator \
@@ -130,7 +137,10 @@ image:
 ```
 
 Release automation should keep the default `image.tag` aligned with the chart
-version. When `image.tag` is empty, the chart uses `appVersion`.
+version. When `image.tag` is empty, the chart uses `appVersion`. The default
+`0.1.0` tag is the targeted first release and is not published until the
+`v0.1.0` tag is cut; see the pre-release note in [Install](#install) for the
+local checkout workaround.
 
 ## Runtime Defaults
 
