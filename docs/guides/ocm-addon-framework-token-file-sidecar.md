@@ -170,10 +170,10 @@ For Kubernetes native sidecars, place `aws-irsa-sidecar` in `initContainers`
 with `restartPolicy: Always`. If the hosting cluster does not support native
 sidecars, run the same container as a normal long-running sidecar.
 
-The `aws-irsa-sidecar:0.1.0` tag below points at the planned first-release
+The `aws-irsa-sidecar:0.1.1` tag below points at the planned first-release
 coordinates for AWIO. The first public tag has not been cut yet, so the OCI
 artifact at those coordinates is not yet published; the example becomes
-pullable once `v0.1.0` lands.
+pullable once `v0.1.1` lands.
 
 ```yaml
 apiVersion: apps/v1
@@ -208,7 +208,7 @@ spec:
             secretName: {{ .ManagedKubeConfigSecret }}
       initContainers:
         - name: aws-irsa-sidecar
-          image: ghcr.io/appthrust/aws-workload-identity-operator/aws-irsa-sidecar:0.1.0
+          image: ghcr.io/appthrust/aws-workload-identity-operator/aws-irsa-sidecar:0.1.1
           restartPolicy: Always
           command:
             - /aws-irsa-sidecar
