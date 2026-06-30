@@ -124,6 +124,7 @@ bindings. See [configure platform defaults](docs/guides/configure-platform-defau
 For self-hosted clusters, use `AWSWorkloadIdentityConfig/default` with
 `spec.type: SelfHostedIRSA`, then create `AWSServiceAccountRole` bindings for
 remote service accounts. See
+[kubeadm and kind preparation](docs/guides/selfhosted-irsa-kubeadm-kind.md),
 [bind a service account](docs/guides/bind-service-account.md) and
 [SelfHostedIRSA behavior](docs/reference/operator-behavior.md#self-hosted-irsa-behavior).
 

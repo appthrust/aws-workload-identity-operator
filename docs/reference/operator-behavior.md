@@ -35,6 +35,12 @@ stale. It records the last verified desired publication identity in
 is not synced, the target bucket remains in
 `status.selfHostedIssuer.bucketName` and `publication` is cleared.
 
+`SelfHostedIRSA` does not reconfigure the target kube-apiserver. The target
+cluster must already issue bound ServiceAccount tokens whose issuer is this S3
+URL, whose signing key matches the SelfHostedIRSA signing Secret, and whose
+audience can be `sts.amazonaws.com`. For kubeadm and kind examples, see
+[Configure SelfHostedIRSA For kubeadm And kind](../guides/selfhosted-irsa-kubeadm-kind.md).
+
 Target ServiceAccounts are patched with annotations consumed by
 aws-pod-identity-webhook:
 

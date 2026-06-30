@@ -26,6 +26,11 @@ cut yet, so the OCI artifacts under these coordinates are not yet published.
 | `EKSIRSA` | `spec.eksIRSA.issuerURL`; provider management choice and optional external provider ARN | Manager can annotate remote ServiceAccounts. |
 | `EKSPodIdentity` | `aws.identity.appthrust.io/eks-cluster-name`, `aws.identity.appthrust.io/eks-cluster-arn`, and `aws.identity.appthrust.io/aws-account-id` in `ClusterProfile.status.properties` | ACK EKS can reconcile PodIdentityAssociation resources. |
 
+`SelfHostedIRSA` target clusters must also have kube-apiserver configured to
+issue ServiceAccount tokens with the self-hosted S3 issuer URL, the matching
+signing key, and an STS audience. For kubeadm and kind examples, see
+[Configure SelfHostedIRSA For kubeadm And kind](../guides/selfhosted-irsa-kubeadm-kind.md).
+
 Optional `EKSPodIdentity` facts:
 
 | Property | Effect |

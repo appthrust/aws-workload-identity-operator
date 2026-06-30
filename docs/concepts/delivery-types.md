@@ -19,6 +19,10 @@ The operator writes OIDC discovery and JWKS objects to S3 directly with the AWS
 S3 API. ACK manages the S3 bucket and IAM OIDC provider, not the individual S3
 objects.
 
+For kubeadm and kind targets, configure the target kube-apiserver to issue
+tokens with the self-hosted issuer before creating bindings. See
+[Configure SelfHostedIRSA For kubeadm And kind](../guides/selfhosted-irsa-kubeadm-kind.md).
+
 ## EKSIRSA
 
 Use `EKSIRSA` for EKS clusters that should use native EKS OIDC issuer based

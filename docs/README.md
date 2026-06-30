@@ -22,6 +22,7 @@ Delivery types include `SelfHostedIRSA`, `EKSIRSA`, and `EKSPodIdentity`.
 | Install the operator | [Install With Helm](guides/install-helm.md) |
 | Configure Cluster Inventory and OCM access | [Cluster Inventory And OCM](concepts/cluster-inventory-and-ocm.md) |
 | Configure cluster-wide defaults | [Configure Platform Defaults](guides/configure-platform-defaults.md) |
+| Prepare kubeadm or kind clusters for SelfHostedIRSA | [Configure SelfHostedIRSA For kubeadm And kind](guides/selfhosted-irsa-kubeadm-kind.md) |
 | Bind a workload ServiceAccount | [Bind A ServiceAccount](guides/bind-service-account.md) |
 | Fan out bindings with OCM Placement | [Fleet Bindings](guides/fleet-bindings.md) |
 | Restrict requested IAM permissions | [Restrict IAM Policy Inputs](guides/restrict-iam-policy-inputs.md) |
