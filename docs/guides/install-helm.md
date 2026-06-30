@@ -2,7 +2,7 @@
 
 The first public tag has not been cut yet, so the OCI artifact below is not
 yet published; the command becomes installable once the release lands. The
-planned release tag is `v0.1.0`; the Helm chart version is `0.1.0`. Future
+planned release tag is `v0.1.1`; the Helm chart version is `0.1.1`. Future
 release pull requests update this command through tagpr version sync.
 
 Install the chart from GHCR's OCI registry:
@@ -10,7 +10,7 @@ Install the chart from GHCR's OCI registry:
 ```sh
 helm upgrade --install aws-workload-identity-operator \
   oci://ghcr.io/appthrust/helm-charts/aws-workload-identity-operator \
-  --version 0.1.0 \
+  --version 0.1.1 \
   --namespace aws-workload-identity-operator-system \
   --create-namespace
 ```

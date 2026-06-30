@@ -146,10 +146,10 @@ template value as volume `managed-kubeconfig-secret` at
 For a manifest-level guide focused only on addon-framework hosted agents, see
 [OCM Add-On Framework IRSA Sidecar](ocm-addon-framework-token-file-sidecar.md).
 
-The `aws-irsa-sidecar:0.1.0` tag below points at the planned first-release
+The `aws-irsa-sidecar:0.1.1` tag below points at the planned first-release
 coordinates for AWIO. The first public tag has not been cut yet, so the OCI
 artifact at those coordinates is not yet published; the example becomes
-pullable once `v0.1.0` lands.
+pullable once `v0.1.1` lands.
 
 ```yaml
 apiVersion: apps/v1
@@ -182,7 +182,7 @@ spec:
             secretName: {{ .ManagedKubeConfigSecret }}
       initContainers:
         - name: aws-irsa-sidecar
-          image: ghcr.io/appthrust/aws-workload-identity-operator/aws-irsa-sidecar:0.1.0
+          image: ghcr.io/appthrust/aws-workload-identity-operator/aws-irsa-sidecar:0.1.1
           restartPolicy: Always
           args:
             - --kubeconfig=/managed/config/kubeconfig
@@ -236,7 +236,7 @@ The `credential_process` value in the ConfigMap intentionally stays on one
 physical AWS shared-config line. The AWS SDK executes that line as the command;
 the multi-line examples above are only for readability in this guide.
 
-The `remote-irsa-tools:0.1.0` tag below points at the same planned
+The `remote-irsa-tools:0.1.1` tag below points at the same planned
 first-release coordinates as the sidecar earlier on this page. No public tag
 has been cut yet, so that OCI artifact is not yet published either.
 
@@ -269,7 +269,7 @@ spec:
       volumes:
         - name: remote-irsa-tools
           image:
-            reference: ghcr.io/appthrust/aws-workload-identity-operator/remote-irsa-tools:0.1.0
+            reference: ghcr.io/appthrust/aws-workload-identity-operator/remote-irsa-tools:0.1.1
         - name: ocm-cp-creds
           image:
             reference: quay.io/open-cluster-management/cp-creds:latest
